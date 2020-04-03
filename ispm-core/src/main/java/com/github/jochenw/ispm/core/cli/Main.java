@@ -4,11 +4,13 @@ import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import com.github.jochenw.afw.core.cli.Options;
 import com.github.jochenw.afw.core.util.Holder;
 import com.github.jochenw.afw.core.util.MutableBoolean;
+import com.github.jochenw.ispm.core.api.Data;
 
 
 public class Main {
@@ -61,34 +63,34 @@ public class Main {
 		}
 	}
 
-	public static class Data {
-		private String action, packageName;
-	}
-
 	public static void main(String[] pArgs) {
 		final Data data = new Data();
+		final Consumer<String> actionConsumer = (pAction) -> {
+			if (data.getAction() != null) {
+				throw usage("The options -compile, -list, -show, and -show-config are mutually exclusive.");
+			}
+			data.setAction(pAction);
+		};
 		final Handler handler = new Handler() {
 			@Override
 			public void accept(String pOption, Supplier<String> pValue) {
 				switch (pOption) {
+				case "compile":
+					actionConsumer.accept("compile");
+					data.setPackageName(pValue.get());
+					break;
 				case "list":
-					if (data.action != null) {
-						throw usage("The options -list, -show, and -show-config are mutually exclusive.");
-					}
-					data.action = "list";
+					actionConsumer.accept("list");
 					break;
 				case "show":
-					if (data.action != null) {
-						throw usage("The options -list, -show, and -show-config are mutually exclusive.");
-					}
-					data.action = "show";
-					data.packageName = pValue.get();
+					actionConsumer.accept("show");
+					data.setPackageName(pValue.get());
 					break;
 				case "show-config":
-					if (data.action != null) {
-						throw usage("The options -list, -show, and -show-config are mutually exclusive.");
-					}
-					data.action = "show-config";
+					actionConsumer.accept("show-config");
+					break;
+				case "wmHome":
+					data.setIsInstanceId(pValue.get());
 					break;
 				case "h":
 				case "?":
@@ -123,6 +125,7 @@ public class Main {
 		ps.println("Usage: java " + Main.class.getName() + " [<ACTION>] <OPTIONS>");
 		ps.println();
 		ps.println("Possible actions are:");
+		ps.println("  --compile <PKG>   Compiles the given package.");
 		ps.println("  --list            List all packages in the packages directory.");
 		ps.println("                    This action is the default.");
 		ps.println("  --show <PACKAGE>  Show details for the given package.");
@@ -130,6 +133,7 @@ public class Main {
 		ps.println();
 		ps.println("Other options are:");
 		ps.println("  -h|/?|-help          Show this message, and exit with error status.");
+		ps.println("  --wmHome <ID>     Sets the webMethods home directory.");
 		System.exit(1);
 		return null;
 	}
