@@ -7,7 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.annotation.Nullable;
@@ -29,11 +31,37 @@ public class Main {
 		final Holder<Path> logFile = new Holder<Path>();
 		final Holder<Path> configFile = new Holder<Path>();
 		final IspmActionBean bean = new IspmActionBean();
+		final Map<String,String> properties = new HashMap<>();
+		final Holder<String> type = new Holder<String>();
+		final Holder<String> id = new Holder<String>();
+		final Holder<Path> dir = new Holder<Path>();
 		final Args.Listener listener = new Args.Listener() {
 			@Override
 			public void option(Args.Context pCtx, String pName) {
 				String actionStr = null;
 				switch (pName) {
+				  case "add-is-instance":
+					actionStr = pName;
+					id.set(pCtx.getValue());
+					break;
+				  case "add-local-repo":
+					actionStr = pName;
+					id.set(pCtx.getValue());
+					break;
+				  case "add-remote-repo":
+					actionStr = pName;
+					id.set(pCtx.getValue());
+					break;
+				  case "dir":
+					if (dir.get() != null) {
+						throw error("Option " + pName + " may be used only once.");
+					}
+					final Path p = Paths.get(pCtx.getValue());
+					if (!Files.isDirectory(p)) {
+						throw error("Invalid argument for option " + pName + ": " + p + " (Not  directory, or doesn't exist)");
+					}
+					dir.set(p);
+					break;
 				  case "list-instances":
 					actionStr = pName;
 					break;
@@ -107,15 +135,16 @@ public class Main {
 			if (Files.isRegularFile(configFilePath)) {
 				configuration = xmlConfiguration.parse(configFilePath);
 			} else {
-				final Path dir = configFilePath.getParent();
-				if (dir != null) {
+				final Path configDir = configFilePath.getParent();
+				if (configDir != null) {
 					try {
-						Files.createDirectories(dir);
+						Files.createDirectories(configDir);
 					} catch (IOException e) {
 						throw new UncheckedIOException(e);
 					}
 				}
-				xmlConfiguration.save(xmlConfiguration.getDefault(), configFilePath);
+				final XmlConfiguration config = new XmlConfiguration();
+				config.save(configFilePath);
 				configuration = xmlConfiguration.parse(configFilePath);
 			}
 		} else {
@@ -201,15 +230,23 @@ public class Main {
 		ps.println("Usage: java " + Main.class.getName() + " <ACTION> [OPTIONS]");
 		ps.println();
 		ps.println("Possible actions are:");
+		ps.println("  --add-instance=<ID> Adds a new IS instance directory to the configuration.");
+		ps.println("                      Use the options --dir, and --property to");
+		ps.println("                      configure the instance details.");
 		ps.println("  --list            List the packages in the IS directory.");
 		ps.println("  --list-instances  List the IS instance directories.");
 		ps.println();
 		ps.println("Other opions are:");
 		ps.println("  --configFile <F>  Sets the config file to use. Defaults to "
 				   + getDefaultConfigFile());
+		ps.println("  --dir=<DIR>       Sets the IS instance directory for --add-instance.");
 		ps.println("  --isInstance <ID> Set the IS instance directory to the given ID.");
 		ps.println("  --logFile <F>     Sets the log file (Defaults to System.out).");
 		ps.println("  --logLevel <LVL>  Sets the log level (TRACE,DEBUG,INFO,WARN,ERROR; default is INFO).");
+		ps.println("  --property=<KEY>=<VALUE> Sets a repository property for --add-local-repo, ");
+		ps.println("                    and --add-remote-repo.");
+		ps.println("  --type=<TYPE>     Sets the repository type for --add-local-repo, and");
+		ps.println("                    --add-remote-repo");
 		System.exit(1);
 		return null;
 	}
