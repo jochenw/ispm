@@ -8,6 +8,10 @@ public interface IConfiguration {
 		public String getId();
 		public Path getPath();
 		public Path getPackageDir();
+		public Path getConfigDir();
+		public Path getIsHomeDir();
+		public Path getWmHomeDir();
+		public String getWmVersion();
 	}
 
 	public List<IIsInstance> getIsInstances();

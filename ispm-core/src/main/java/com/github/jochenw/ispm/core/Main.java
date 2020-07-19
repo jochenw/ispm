@@ -126,14 +126,29 @@ public class Main {
 		case "list-instances":
 			final List<IspmActionBean.IsInstanceInfo> instances = new ArrayList<>();
 			bean.listInstances((inst) -> instances.add(inst));
-			show(instances, new String[] {"Id", "Directory"}, (inst) -> inst.getId(), (inst) -> inst.getDir().toString());
+			if (instances.isEmpty()) {
+				System.out.println("No instances found.");
+			} else {
+				instances.sort((i1, i2) -> 
+					i1.getId().compareToIgnoreCase(i2.getId())
+				);
+				show(instances, new String[] {"Id", "Directory"},
+					 (inst) -> inst.getId(),
+					 (inst) -> inst.getDir().toString());
+			}
 			break;
 		case "list":
 			final List<IspmActionBean.IsPkgInfo> packages = new ArrayList<>();
 			bean.list((pkg) -> packages.add(pkg));
-			show(packages, new String[] {"Name", "Local repo", "Remote Repo"},
-			     (pkg) -> pkg.getPackageName(), (pkg) -> pkg.getLocalRepositoryId(),
-				 (pkg) -> pkg.getRemoteRepositoryId());
+			if (packages.isEmpty()) {
+				System.out.println("No packages found.");
+			} else {
+				packages.sort((p1, p2) -> p1.getPackageName().compareToIgnoreCase(p2.getPackageName()));
+				show(packages, new String[] {"Name", "Local repo", "Remote Repo"},
+						(pkg) -> pkg.getPackageName(),
+						(pkg) -> pkg.getLocalRepositoryId(),
+						(pkg) -> pkg.getRemoteRepositoryId());
+			}
 		}
 	}
 

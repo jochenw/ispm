@@ -8,6 +8,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -45,11 +46,13 @@ import com.github.jochenw.afw.core.util.Exceptions;
 import com.github.jochenw.afw.core.util.Functions.FailableBiConsumer;
 import com.github.jochenw.afw.core.util.Sax;
 import com.github.jochenw.ispm.core.config.IConfiguration;
+import com.github.jochenw.ispm.core.config.IConfiguration.IIsInstance;
 
 public class XmlConfiguration {
 	public static class IsInstance {
 		private final Locator locator;
-		private final String dir, wmVersion, wmHomeDir, isHomeDir, packageDir, configDir;
+		private final String id, dir, wmVersion, wmHomeDir, isHomeDir, packageDir, configDir;
+		private final boolean isDefault;
 
 		/**
 		 * @param pDir
@@ -58,8 +61,10 @@ public class XmlConfiguration {
 		 * @param pPackageDir
 		 * @param pConfigDir
 		 */
-		public IsInstance(Locator pLocator, String pDir, String pWmVersion, String pWmHomeDir, String pIsHomeDir, String pPackageDir, String pConfigDir) {
+		public IsInstance(Locator pLocator, boolean pDefault, String pId, String pDir, String pWmVersion, String pWmHomeDir, String pIsHomeDir, String pPackageDir, String pConfigDir) {
 			locator = pLocator;
+			isDefault = pDefault;
+			id = pId;
 			dir = pDir;
 			wmVersion = pWmVersion;
 			wmHomeDir = pWmHomeDir;
@@ -114,6 +119,14 @@ public class XmlConfiguration {
 		 */
 		public Locator getLocator() {
 			return locator;
+		}
+
+		public String getId() {
+			return id;
+		}
+
+		public boolean isDefault() {
+			return isDefault;
 		}
 	}
 
@@ -185,7 +198,6 @@ public class XmlConfiguration {
 	private final List<TRemoteRepository> remoteRepositories;
 	private @Inject IAppLog appLog;
 	private @Inject IComponentFactory componentFactory;
-
 	
 	/**
 	 * @param pInstances
@@ -210,9 +222,97 @@ public class XmlConfiguration {
 	}
 
 	protected IConfiguration asConfiguration() throws LocalizableException {
-		throw new IllegalStateException("Not implemented");
+		final List<IIsInstance> list = new ArrayList<>();
+		IIsInstance defaultInstance = null;
+		for (IsInstance inst : instances) {
+			IIsInstance instance = asIsInstance(inst);
+			if (inst.isDefault()) {
+				if (defaultInstance == null) {
+					defaultInstance = instance;
+				} else {
+					throw new LocalizableException(inst.getLocator(), "Only one default instance is permitted.");
+				}
+			}
+			list.add(instance);
+		}
+		if (defaultInstance == null) {
+			if (!instances.isEmpty()) {
+				defaultInstance = list.get(0);
+			}
+		}
+		final IIsInstance defaultInst = defaultInstance;
+		return new IConfiguration() {
+			@Override
+			public List<IIsInstance> getIsInstances() {
+				return list;
+			}
+
+			@Override
+			public IIsInstance getDefaultInstance() {
+				if (defaultInst == null) {
+					throw new IllegalStateException("No default instance is configured.");
+				}
+				return defaultInst;
+			}
+		};
 	}
 
+	protected Path resolve(Path pDir, String pRelativePath, String pDefault) {
+		if (pRelativePath == null) {
+			return pDir.resolve(pDefault);
+		} else {
+			return pDir.resolve(pRelativePath);
+		}
+	}
+
+	protected IIsInstance asIsInstance(IsInstance pInst) {
+		final String dirStr = pInst.getDir();
+		final Path dir = Paths.get(dirStr);
+		if (!Files.isDirectory(dir)) {
+			throw new LocalizableException(pInst.getLocator(), "Invalid instance directory: " + dir);
+		}
+		final Path packagesDir = resolve(dir, pInst.getPackageDir(), "packages");
+		final Path configDir = resolve(dir, pInst.getConfigDir(), "config");
+		final Path isHomeDir = resolve(dir, pInst.getIsHomeDir(), "../..");
+		final Path wmHomeDir = resolve(dir, pInst.getIsHomeDir(), "../../..");
+		return new IIsInstance() {
+			@Override
+			public Path getPath() {
+				return dir;
+			}
+			
+			@Override
+			public Path getPackageDir() {
+				return packagesDir;
+			}
+			
+			@Override
+			public String getId() {
+				return pInst.getId();
+			}
+
+			@Override
+			public Path getConfigDir() {
+				return configDir;
+			}
+
+			@Override
+			public Path getIsHomeDir() {
+				return isHomeDir;
+			}
+
+			@Override
+			public Path getWmHomeDir() {
+				return wmHomeDir;
+			}
+
+			@Override
+			public String getWmVersion() {
+				return pInst.getWmVersion();
+			}
+		};
+	}
+	
 	public IConfiguration parse(Path pConfigFilePath) {
 		try {
 			final XmlConfigurationHandler h = new XmlConfigurationHandler(appLog);
@@ -238,7 +338,7 @@ public class XmlConfiguration {
 		return new XmlConfiguration();
 	}
 
-	public void save(XmlConfiguration pDefault, Path pConfigFilePath) {
+	public void save(Path pConfigFilePath) {
 		try (OutputStream os = Files.newOutputStream(pConfigFilePath);
 			 BufferedOutputStream bos = new BufferedOutputStream(os)) {
 			save(bos);
@@ -319,6 +419,10 @@ public class XmlConfiguration {
 			for (IsInstance isInstance : isInstances) {
 				final AttributesImpl instAttrs = new AttributesImpl();
 				instAttrs.addAttribute("", "dir", "dir", "CDATA", isInstance.getDir());
+				instAttrs.addAttribute("", "id", "id", "CDATA", isInstance.getId());
+				if (isInstance.isDefault()) {
+					instAttrs.addAttribute("", "default", "default", "CDATA", "true");
+				}
 				if (isInstance.getWmVersion() != null) {
 					instAttrs.addAttribute("", "wmVersion", "wmVersion", "CDATA", isInstance.getWmVersion());
 				}
@@ -379,5 +483,29 @@ public class XmlConfiguration {
 		} else {
 			return instances;
 		}
+	}
+
+	public XmlConfiguration add(TLocalRepository pLocalRepository) {
+		final List<IsInstance> instances = getIsInstanceDirs();
+		final List<TLocalRepository> localRepositories = new ArrayList<>(getLocalRepositories());
+		final List<TRemoteRepository> remoteRepositories = getRemoteRepositories();
+		localRepositories.add(pLocalRepository);
+		return new XmlConfiguration(instances, localRepositories, remoteRepositories);
+	}
+
+	public XmlConfiguration add(TRemoteRepository pRemoteRepository) {
+		final List<IsInstance> instances = getIsInstanceDirs();
+		final List<TLocalRepository> localRepositories = getLocalRepositories();
+		final List<TRemoteRepository> remoteRepositories = new ArrayList<>(getRemoteRepositories());
+		remoteRepositories.add(pRemoteRepository);
+		return new XmlConfiguration(instances, localRepositories, remoteRepositories);
+	}
+
+	public XmlConfiguration add(IsInstance pIsInstance) {
+		final List<IsInstance> instances = new ArrayList<>(getIsInstanceDirs());
+		instances.add(pIsInstance);
+		final List<TLocalRepository> localRepositories = getLocalRepositories();
+		final List<TRemoteRepository> remoteRepositories = getRemoteRepositories();
+		return new XmlConfiguration(instances, localRepositories, remoteRepositories);
 	}
 }

@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.xml.transform.TransformerException;
 
 import org.junit.Test;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.github.jochenw.afw.core.log.app.IAppLog;
@@ -38,19 +39,23 @@ public class XmlConfigurationTest {
 		if (pShow) {
 			baos.writeTo(System.out);
 		}
-		final SystemOutAppLog appLog = new SystemOutAppLog();
-		appLog.setLevel(IAppLog.Level.TRACE);
-		final XmlConfigurationHandler xfh = new XmlConfigurationHandler(appLog);
-		Sax.parse(new ByteArrayInputStream(baos.toByteArray()), xfh);
-		final XmlConfiguration xmlConfiguration2 = xfh.getXmlConfiguration();
+		final XmlConfiguration xmlConfiguration2 = parse(new ByteArrayInputStream(baos.toByteArray()));
 		assertEqual(pExpect, xmlConfiguration2);
 	}
 
+	protected XmlConfiguration parse(InputStream pIn) {
+		final SystemOutAppLog appLog = new SystemOutAppLog();
+		appLog.setLevel(IAppLog.Level.TRACE);
+		final XmlConfigurationHandler xfh = new XmlConfigurationHandler(appLog);
+		Sax.parse(pIn, xfh);
+		return xfh.getXmlConfiguration();
+	}
+	
 	@Test
 	public void testEsbConfiguration() throws Exception {
-		final IsInstance wm99Instance = new IsInstance(null, "F:/SoftwareAG/webMethods99", null, null, null, null, null);
-		final IsInstance wm912Instance = new IsInstance(null, "F:/SoftwareAG/webMethods912", null, null, null, null, null);
-		final IsInstance wm103Instance = new IsInstance(null, "F:/SoftwareAG/webMethods103", null, null, null, null, null);
+		final IsInstance wm99Instance = new IsInstance(null, true, "wm99", "F:/SoftwareAG/webMethods99", null, null, null, null, null);
+		final IsInstance wm912Instance = new IsInstance(null, false, "wm912", "F:/SoftwareAG/webMethods912", null, null, null, null, null);
+		final IsInstance wm103Instance = new IsInstance(null, false, "wm103", "F:/SoftwareAG/webMethods103", null, null, null, null, null);
 		final List<IsInstance> instanceDirs = Arrays.asList(wm99Instance, wm912Instance, wm103Instance);
 		final TLocalRepository gitDev99Repo = new TLocalRepository(null, "gd99", "default", new HashMap<>());
 		gitDev99Repo.getProperties().put("dir", "f:/GIT-DEV99");
@@ -66,10 +71,33 @@ public class XmlConfigurationTest {
 		final List<TRemoteRepository> remoteRepos = Collections.singletonList(azureRepo);
 		final XmlConfiguration xmlConfiguration = new XmlConfiguration(instanceDirs, localRepos, remoteRepos);
 		parseAndValidate(xmlConfiguration, false);
-		
-		
-		
 	}
+
+	@Test
+	public void testAddLocalRepository() throws Exception {
+		final XmlConfiguration emptyConfiguration = new XmlConfiguration();
+		final TLocalRepository gitDev99Repo = new TLocalRepository(null, "gd99", "default", new HashMap<>());
+		gitDev99Repo.getProperties().put("dir", "f:/GIT-DEV99");
+		gitDev99Repo.getProperties().put("wmVersion", "wm99");
+		final XmlConfiguration resultConfiguration = emptyConfiguration.add(gitDev99Repo);
+		final XmlConfiguration expectConfiguration = new XmlConfiguration(Collections.emptyList(),
+				                                                          Collections.singletonList(gitDev99Repo),
+				                                                          Collections.emptyList());
+		assertEqual(expectConfiguration, resultConfiguration);
+	}
+
+	@Test
+	public void testAddRemoteRepository() throws Exception {
+		final XmlConfiguration emptyConfiguration = new XmlConfiguration();
+		final TRemoteRepository ghRepo = new TRemoteRepository(null, "gh", "default", new HashMap<>());
+		ghRepo.getProperties().put("url", "https://github.com/acmeCorporation");
+		final XmlConfiguration resultConfiguration = emptyConfiguration.add(ghRepo);
+		final XmlConfiguration expectConfiguration = new XmlConfiguration(Collections.emptyList(),
+				                                                          Collections.emptyList(),
+				                                                          Collections.singletonList(ghRepo));
+		assertEqual(expectConfiguration, resultConfiguration);
+	}
+
 	protected void validate(InputStream pIn) {
 		new XmlConfiguration().validate(pIn);
 	}
@@ -110,6 +138,8 @@ public class XmlConfigurationTest {
 	}
 
 	protected void assertEqual(IsInstance pExpect, IsInstance pGot) {
+		assertEqual(pExpect.getId(), pGot.getId());
+		assertEquals(pExpect.isDefault(), pGot.isDefault());
 		assertEquals(pExpect.getDir(), pGot.getDir());
 		assertEqual(pExpect.getWmVersion(), pGot.getWmVersion());
 		assertEqual(pExpect.getWmHomeDir(), pGot.getWmHomeDir());

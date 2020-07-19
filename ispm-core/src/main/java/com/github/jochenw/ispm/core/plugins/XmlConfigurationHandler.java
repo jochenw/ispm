@@ -124,13 +124,15 @@ class XmlConfigurationHandler extends AbstractContentHandler {
 		    	inRemoteRepository = true;
 		    } else if (inIsInstances) {
 		    	assertElement("isInstanceDir", pUri, pLocalName);
+		    	final String id = requireAttribute(pAttrs, "id");
+		    	final boolean isDefault = Boolean.parseBoolean(pAttrs.getValue("default"));
 		    	final String dir = requireAttribute(pAttrs, "dir");
 		    	final String wmVersion = pAttrs.getValue("wmVersion");
 		    	final String isHomeDir = pAttrs.getValue("isHomeDir");
 		    	final String wmHomeDir = pAttrs.getValue("wmHomeDir");
 		    	final String packageDir = pAttrs.getValue("packageDir");
 		    	final String configDir = pAttrs.getValue("configDir");
-		    	instances.add(new IsInstance(getLocator(), dir, wmVersion, wmHomeDir, isHomeDir, packageDir, configDir));
+		    	instances.add(new IsInstance(getLocator(), isDefault, id, dir, wmVersion, wmHomeDir, isHomeDir, packageDir, configDir));
 		    	inIsInstance = true;
 		    } else {
 		    	throw error("Expected inLocalRepositories || inRemoteRepositories || inIsInstances");
