@@ -15,6 +15,7 @@ import com.github.jochenw.ispm.core.config.IConfiguration.IIsInstance;
 import com.github.jochenw.ispm.core.plugins.ILocalRepositoryPlugin;
 import com.github.jochenw.ispm.core.plugins.IRemoteRepositoryPlugin;
 
+
 public class IspmActionBean {
 	/** Instances of this class are produced by the {@link #list(Consumer)} method.
 	 */

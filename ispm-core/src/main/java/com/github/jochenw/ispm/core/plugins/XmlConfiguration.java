@@ -196,8 +196,7 @@ public class XmlConfiguration {
 	private final List<IsInstance> instances;
 	private final List<TLocalRepository> localRepositories;
 	private final List<TRemoteRepository> remoteRepositories;
-	private @Inject IAppLog appLog;
-	private @Inject IComponentFactory componentFactory;
+	private Path path;
 	
 	/**
 	 * @param pInstances
@@ -207,6 +206,22 @@ public class XmlConfiguration {
 	public XmlConfiguration() {
 		this(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 	}
+
+	/** Returns the path, from which this configuration has been read.
+	 * @return The path, from which this configuration has been read.
+	 */
+	public Path getPath() {
+		return path;
+	}
+
+	/** Sets the path, from which this configuration has been read.
+	 * @param pPath The path, from which this configuration has been read.
+	 */
+	public void setPath(Path pPath) {
+		path = pPath;
+	}
+
+
 
 	/**
 	 * @param pInstances
@@ -221,7 +236,7 @@ public class XmlConfiguration {
 		remoteRepositories = pRemoteRepositories;
 	}
 
-	protected IConfiguration asConfiguration() throws LocalizableException {
+	public IConfiguration asConfiguration() throws LocalizableException {
 		final List<IIsInstance> list = new ArrayList<>();
 		IIsInstance defaultInstance = null;
 		for (IsInstance inst : instances) {
@@ -313,12 +328,13 @@ public class XmlConfiguration {
 		};
 	}
 	
-	public IConfiguration parse(Path pConfigFilePath) {
+	public static XmlConfiguration parse(Path pConfigFilePath, IAppLog pAppLog) {
 		try {
-			final XmlConfigurationHandler h = new XmlConfigurationHandler(appLog);
+			final XmlConfigurationHandler h = new XmlConfigurationHandler(pAppLog);
 			Sax.parse(pConfigFilePath, h);
-			final XmlConfiguration xmlConfiguration = h.getXmlConfiguration();
-			return xmlConfiguration.asConfiguration();
+			final XmlConfiguration xc = h.getXmlConfiguration();
+			xc.setPath(pConfigFilePath);
+			return xc;
 		} catch (UndeclaredThrowableException ute) {
 			final Throwable t = ute.getCause();
 			if (t != null  &&  t instanceof SAXParseException) {
