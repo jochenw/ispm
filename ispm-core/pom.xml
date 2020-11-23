@@ -6,74 +6,31 @@
     <version>0.1-SNAPSHOT</version>
   </parent>
   <artifactId>ispm-core</artifactId>
-  <name>ISPM (Core)</name>
-  <description>IS Project Manager (Core)</description>
+  <name>ispm-core</name>
+  <description>Ispm (Core Module)</description>
   <dependencies>
+  	<dependency>
+  		<groupId>com.wm</groupId>
+  		<artifactId>wm-isclient</artifactId>
+  		<version>10.3.0.0000-0118</version>
+  		<scope>provided</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>com.wm</groupId>
+  		<artifactId>wm-isserver</artifactId>
+  		<version>10.3.0.0000-0118</version>
+  		<scope>provided</scope>
+  	</dependency>
   	<dependency>
   		<groupId>com.github.jochenw.afw</groupId>
   		<artifactId>afw-core</artifactId>
-  		<version>0.4</version>
-  		<exclusions>
-  			<exclusion>
-  				<groupId>org.apache.logging.log4j</groupId>
-  				<artifactId>log4j-api</artifactId>
-  			</exclusion>
-  			<exclusion>
-  				<groupId>org.apache.logging.log4j</groupId>
-  				<artifactId>log4j-core</artifactId>
-  			</exclusion>
-  		</exclusions>
+  		<version>0.5-SNAPSHOT</version>
   	</dependency>
   	<dependency>
-  		<groupId>com.google.code.findbugs</groupId>
-  		<artifactId>jsr305</artifactId>
-  		<version>3.0.2</version>
+  		<groupId>org.junit.jupiter</groupId>
+  		<artifactId>junit-jupiter</artifactId>
+  		<version>5.7.0</version>
+  		<scope>test</scope>
   	</dependency>
-  	<dependency>
-  	    <groupId>org.eclipse.jdt</groupId>
-  	    <artifactId>org.eclipse.jdt.annotation</artifactId>
-  	    <version>2.2.400</version>
-  	</dependency>
-    <dependency>
-    	<groupId>junit</groupId>
-    	<artifactId>junit</artifactId>
-    	<version>4.12</version>
-    	<scope>test</scope>
-    </dependency>
-    <dependency>
-    	<groupId>javax.inject</groupId>
-    	<artifactId>javax.inject</artifactId>
-    	<version>1</version>
-    </dependency>
   </dependencies>
-  <profiles>
-    <profile>
-      <id>application</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>appassembler-maven-plugin</artifactId>
-            <version>1.10</version>
-            <configuration>
-              <programs>
-				<program>
-				  <id>ispm</id>
-                  <mainClass>com.github.jochenw.ispm.core.Main</mainClass>
- 				</program>
-              </programs>
-            </configuration>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>assemble</goal>
-                </goals>
-                <phase>package</phase>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
 </project>
