@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Values version="2.0">
+  <value name="shared">DQoNCgkNCg==</value>
+  <value name="encodeutf8">true</value>
+  <array name="imports" type="value" depth="1">
+    <value>java.util.ArrayList</value>
+    <value>java.util.Collections</value>
+    <value>java.util.List</value>
+    <value>com.github.jochenw.ispm.core.data.Data</value>
+    <value>com.softwareag.util.IDataMap</value>
+  </array>
+</Values>
