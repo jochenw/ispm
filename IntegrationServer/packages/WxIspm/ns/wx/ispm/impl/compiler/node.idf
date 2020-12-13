@@ -13,6 +13,7 @@
   <array name="imports" type="value" depth="1">
     <value>java.io.PrintWriter</value>
     <value>java.io.StringWriter</value>
+    <value>java.nio.file.Path</value>
     <value>java.nio.file.Paths</value>
     <value>java.util.ArrayList</value>
     <value>java.util.List</value>

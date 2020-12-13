@@ -9,6 +9,7 @@ import com.wm.app.b2b.server.ServiceException;
 // --- <<IS-START-IMPORTS>> ---
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,17 +41,33 @@ public final class compiler
 		// --- <<IS-START(compilePackage)>> ---
 		// @sigtype java 3.5
 		// [i] field:0:required package
+		// [i] field:0:optional noException {"false","true"}
+		// [i] field:0:optional logging {"false","true"}
+		// [o] field:1:optional warnings
+		// [o] field:1:optional logMessages
+		// [o] field:0:optional exception
+		// [o] field:0:optional standardOutput
+		// [o] field:0:optional errorOutput
+		// [o] field:0:optional status
 		final IDataMap map = new IDataMap(pipeline);
 		final boolean logging = map.getAsBoolean("logging", Boolean.FALSE).booleanValue();
 		final boolean noException = map.getAsBoolean("noException", Boolean.FALSE).booleanValue();
 		final List<String> warnings = new ArrayList<String>();
 		final List<String> infos = new ArrayList<String>();
 		final String packageName = Data.requireString(map, "package");
-		final PackageCompiler compiler = new PackageCompiler();
+		final PackageCompiler compiler = new PackageCompiler(){
+			@Override
+			protected Path getCodeClassesDir(Path pPackageDir) {
+				final Path p = super.getCodeClassesDir(pPackageDir);
+				log("Target directory for " + pPackageDir + " is " + p);
+				return super.getCodeClassesDir(pPackageDir);
+			}
+		};
 		compiler.setWarnLogger((s) -> warnings.add(s));
 		compiler.setLogger((s) -> { if (logging) { infos.add(s); } });
 		try {
-			compiler.compile(Paths.get(""), packageName);
+			final Path instanceDir = Paths.get(".");
+			compiler.compile(instanceDir, packageName);
 		} catch (CompilerStatusException cse) {
 			if (noException) {
 				final PackageCompiler.Data data = cse.getData();
@@ -80,7 +97,7 @@ public final class compiler
 			map.put("warnings", warnings.toArray(new String[warnings.size()]));
 		}
 		if (!infos.isEmpty()) {
-			map.put("logMessages", warnings.toArray(new String[infos.size()]));
+			map.put("logMessages", infos.toArray(new String[infos.size()]));
 		}
 			
 		// --- <<IS-END>> ---

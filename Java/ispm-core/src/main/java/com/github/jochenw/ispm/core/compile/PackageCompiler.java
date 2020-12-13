@@ -97,17 +97,28 @@ public class PackageCompiler {
 		}
 	}
 
-	private Consumer<String> logger;
+	private Consumer<String> log;
 	private Consumer<String> warnLogger;
 
 	public Consumer<String> getLogger() {
-		return logger;
+		return log;
 	}
 
 	public void setLogger(Consumer<String> pLogger) {
-		logger = pLogger;
+		log = pLogger;
 	}
 
+	protected void log(String pMsg) {
+		if (log != null) {
+			log.accept(pMsg);
+		}
+	}
+
+	protected void warn(String pMsg) {
+		if (warnLogger != null) {
+			warnLogger.accept(pMsg);
+		}
+	}
 	public Consumer<String> getWarnLogger() {
 		return warnLogger;
 	}
@@ -138,19 +149,23 @@ public class PackageCompiler {
 
 	protected void collectJavaSourceFiles(Data pData) {
 		try {
-			Files.walk(pData.getCodeSourceDir(), 0).forEach((p) -> {
+			final Path codeSourceDir = pData.getCodeSourceDir();
+			log("Looking for source files in " + codeSourceDir);
+			Files.walk(codeSourceDir, Integer.MAX_VALUE).forEach((p) -> {
+				log("Source dir entry: " + p);
 				if (Files.isRegularFile(p)  &&  p.getFileName().toString().endsWith(".java")) {
-					logger.accept("Adding java source file: " + p);
+					log("Adding java source file: " + p);
 					pData.addJavaSourceFile(p);
 				}
 			});
+			log("Done looking for source files");
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 	}
 
-	protected String getClassPathElement(Path pPath) {
-		final Path currentDir = Paths.get("");
+	protected String asLocalPath(Data pData, Path pPath) {
+		final Path currentDir = pData.getInstanceDir();
 		final String relativePath = currentDir.relativize(pPath).toString();
 		final String absolutePath = pPath.toAbsolutePath().toString();
 		if (relativePath.length() < absolutePath.length()) {
@@ -166,7 +181,7 @@ public class PackageCompiler {
 			if (sb.length() > 0) {
 				sb.append(File.pathSeparator);
 			}
-			sb.append(getClassPathElement(path));
+			sb.append(asLocalPath(pData, path));
 		}
 		return sb.toString();
 	}
@@ -179,13 +194,17 @@ public class PackageCompiler {
 		argList.add("-classpath");
 		argList.add(getClassPathString(pData));
 		argList.add("-d");
-		argList.add(getClassPathElement(codeClassesDir));
+		argList.add(asLocalPath(pData, codeClassesDir));
+		for (Path sourceFile : pData.javaSourceFiles) {
+			argList.add(asLocalPath(pData, sourceFile));
+		}
 		final int status;
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		final ByteArrayOutputStream baes = new ByteArrayOutputStream();
 		try {
 			Files.createDirectories(codeClassesDir);
 			final String[] args = argList.toArray(new String[argList.size()]);
+			log("Compiler args: " + String.join(" ", args));
 			status = javaCompiler.run((InputStream) null, baos, baes, args);
 		} catch (Throwable t) {
 			throw Exceptions.show(t);
@@ -206,17 +225,17 @@ public class PackageCompiler {
 		if (pData.isPackageDependencyCollected(pPackageName)) {
 			return; // This package has already been recognized, nothing to do.
 		}
-		logger.accept("Package dependency: " + pPackageName);
+		log("Package dependency: " + pPackageName);
 		final Path packageDir = getPackageDir(pData.getPackagesDir(), pPackageName);
 		final String[] requiredPackages= parseManifestFile(pPackageName, packageDir); 
 		final Path codeClassesDir = getCodeClassesDir(packageDir);
 		if (Files.isDirectory(codeClassesDir)) {
-			logger.accept("Classpath element: Classes directory " + codeClassesDir);
+			log("Classpath element: Classes directory " + codeClassesDir);
 			pData.addClassPathDependency(codeClassesDir);
 		} else {
 			warnLogger.accept("code/classes directory not found for package: " + pPackageName + ". Ignoring classes from this package.");
 		}
-		collectPackageJarFiles(pPackageName, packageDir);
+		collectPackageJarFiles(pData, pPackageName, packageDir);
 		for (String requiredPackage : requiredPackages) {
 			collectClassPathDependencies(pData, requiredPackage);
 		}
@@ -253,13 +272,14 @@ public class PackageCompiler {
 		return requiredPackages.toArray(new String[requiredPackages.size()]);
 	}
 
-	protected void collectPackageJarFiles(String pPackageName, final Path packageDir) {
+	protected void collectPackageJarFiles(Data pData, String pPackageName, final Path packageDir) {
 		final Path codeJarsDir = getCodeJarsDir(packageDir);
 		if (Files.isDirectory(codeJarsDir)) {
 			try {
 				Files.walk(codeJarsDir, 1).forEach((p) -> {
 					if (p.getFileName().toString().endsWith(".jar")  &&  Files.isRegularFile(p)) {
-						logger.accept("Classpath element: Package jar file " + p);
+						log("Classpath element: Package jar file " + p);
+						pData.addClassPathDependency(p);
 					}
 				});
 			} catch (Throwable t) {
@@ -270,11 +290,66 @@ public class PackageCompiler {
 		}
 	}
 
+	protected Path getRootDir(Path pInstanceDir) {
+		return pInstanceDir.resolve("../../..");
+	}
+
+	protected Path getCommonLibDir(Path pRootDir) {
+		return pRootDir.resolve("common/lib");
+	}
+
+	protected Path getIsLibDir(Path pRootDir) {
+		return pRootDir.resolve("IntegrationServer/lib");
+	}
+
+	protected void collectJarFiles(Data pData, Path pDir) {
+		try {
+			Files.walk(pDir,  1).forEach((p) -> {
+				if (p.getFileName().toString().endsWith(".jar")  &&  Files.isRegularFile(p)) {
+					log("Classpath element: Common jar file " + p);
+					pData.addClassPathDependency(p);
+				}
+			});
+		} catch (Throwable t) {
+			throw Exceptions.show(t);
+		}
+	}
+
+	protected void collectServerClassPathDependencies(Data pData) {
+		final Path rootDir = getRootDir(pData.getInstanceDir());
+		final Path isLibDir = getIsLibDir(rootDir);
+		if (Files.isDirectory(isLibDir)) {
+			collectJarFiles(pData, isLibDir);
+		} else {
+			warn("Directory <WM_HOME>/IntegrationServer/lib not found, ignoring jar files from that directory.");
+		}
+		final Path commonLibDir = getCommonLibDir(rootDir);
+		final Path commonLibExtDir = commonLibDir.resolve("ext");
+		if (Files.isDirectory(commonLibExtDir)) {
+			collectJarFiles(pData, commonLibExtDir);
+		} else {
+			warn("Directory <WM_HOME>/common/lib/ext not found, ignoring jar files from that directory.");
+		}
+		final Path commonLibGfDir = commonLibDir.resolve("glassfish");
+		if (Files.isDirectory(commonLibGfDir)) {
+			collectJarFiles(pData, commonLibGfDir);
+		} else {
+			warn("Directory <WM_HOME>/common/lib/glassfish not found, ignoring jar files from that directory.");
+		}
+		if (Files.isDirectory(commonLibDir)) {
+			collectJarFiles(pData, commonLibDir);
+		} else {
+			warn("Directory <WM_HOME>/common/lib not found, ignoring jar files from that directory.");
+		}
+	}
+
 	protected void collectClassPathDependencies(Data pData) {
 		collectClassPathDependencies(pData, pData.getPackageName());
+		collectServerClassPathDependencies(pData);
 	}
 
 	public void compile(Path pInstanceDir, String pPackageName) throws CompilerStatusException {
+		log("Compiling package " + pPackageName + " in directory " + pInstanceDir);
 		final Path instanceDir = Objects.requireNonNull(pInstanceDir, "Instance Directory");
 		final String packageName = Objects.requireNonNull(pPackageName, "Package Name");
 		final Path packagesDir = Objects.requireNonNull(getPackagesDir(instanceDir));
@@ -291,5 +366,6 @@ public class PackageCompiler {
 		if (data.status != 0) {
 			throw new CompilerStatusException(data, "Invalid compiler status: " + data.status);
 		}
+		log("Compiled package " + pPackageName);
 	}
 }
