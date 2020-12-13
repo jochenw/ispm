@@ -2,9 +2,9 @@
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" output="code/classes" path="code/source"/>
-	<classpathentry kind="lib" path="code/jars/ispm-core-0.1-SNAPSHOT.jar" sourcepath="code/source-jars/ispm-core-0.1-SNAPSHOT-sources.zip"/>
 	<classpathentry kind="var" path="WEBMETHODS_HOME/common/lib/wm-isclient.jar"/>
 	<classpathentry kind="var" path="WEBMETHODS_HOME/IntegrationServer/lib/wm-isserver.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/5"/>
+	<classpathentry kind="lib" path="code/jars/ispm-core.jar" sourcepath="code/source-jars/ispm-core-sources.zip"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

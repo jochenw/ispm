@@ -1,0 +1,41 @@
+<project name="Ispm-Root" default="dist">
+	<property environment="env"/>
+	<property name="target" location="target"/>
+	<property name="target" location="${target}/dist"/>
+	<property name="ispm.core.version" value="0.1"></property>
+	<condition property="os.windows">
+		<os family="windows"/>
+	</condition>
+	<condition property="os.other">
+		<not>
+			<os family="windows"/>
+		</not>
+	</condition>
+	<target name="clean">
+		<delete dir="${target}"/>
+	</target>
+	<target name="check.mvn" unless="maven.home">
+		<fail>The property maven.home is not set.</fail>
+	</target>
+	<target name="setup.mvn.win" if="os.windows">
+		<property name="maven.home" location="${env.MAVEN_HOME}"/>
+		<property name="maven.path" location="${maven.home}/bin/mvn.cmd"/>
+	</target>
+	<target name="setup.mvn.other" if="os.other">
+		<property name="maven.path" location="${maven.home}/bin/mvn"/>
+	</target>
+	<target name="setup.mvn" depends="check.mvn,setup.mvn.win,setup.mvn.other"/>
+	<target name="setup.pkg.build">
+		<mkdir dir="${target}/packages"/>
+		<copy todir="${target}/packages/WxIspm">
+			<fileset dir="IntegrationServer/packages/WxIspm" includes="**/*"/>
+		</copy>
+	</target>
+	<target name="ispmCoreJar" depends="setup.mvn">
+		<exec dir="Java/ispm-core" executable="${maven.path}"/>
+		<copy file="Java/ispm-core/target/ispm-core-${ispm.core.version}.jar" tofile="IntegrationServer/packages/WxIspm/code/jars/ispm-core.jar"/>
+		<copy file="Java/ispm-core/target/ispm-core-${ispm.core.version}-sources.jar" tofile="IntegrationServer/packages/WxIspm/code/source-jars/ispm-core-sources.zip"/>
+	</target>
+	<target name="dist" depends="clean,setup.pkg.build,ispmCoreJar">
+	</target>
+</project>

@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.jochenw.ispm</groupId>
   <artifactId>ispm-core</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>0.1</version>
   <name>Ispm (Core)</name>
   <dependencies>
   	<dependency>
