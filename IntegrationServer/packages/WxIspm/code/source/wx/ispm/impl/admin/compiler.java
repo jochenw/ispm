@@ -1,4 +1,4 @@
-package wx.ispm.impl;
+package wx.ispm.impl.admin;
 
 // -----( IS Java Code Template v1.2
 

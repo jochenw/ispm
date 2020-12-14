@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="http://namespaces.github.com/jochenw/ispm/core/config/1.0.0"
+              xmlns:tns="http://namespaces.github.com/jochenw/ispm/core/config/1.0.0"
+     elementFormDefault="qualified">
+  <xs:element name="ispm-config">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="plugins" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="plugin" type="tns:TPlugin" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="localRepos" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="localRepo" type="tns:TLocalRepo" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="remoteRepos" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="remoteRepo" type="tns:TRemoteRepo" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="instances" minOccurs="0">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="instance" type="tns:TInstance" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:complexType name="TPlugin">
+    <xs:complexContent>
+      <xs:annotation><xs:documentation>
+        A plugin must either have a non-empty class attribute, or a non-empty script attribute.
+      </xs:documentation></xs:annotation>
+      <xs:extension base="tns:TPropertiesContainer">
+        <xs:attribute name="class" type="xs:string" use="optional">
+          <xs:annotation><xs:documentation>
+            A non-empty class attribute indicates, that the plugin is a compiled Java class
+            with the given fully qualified name, which is being loaded from the classpath.
+          </xs:documentation></xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="script" type="xs:string" use="optional">
+          <xs:annotation><xs:documentation>
+            A non-empty script attribute indicates, that the plugin is a Groovy script,
+            with the given path (relative to packages/WxIspm/config/scripts).
+          </xs:documentation></xs:annotation>
+        </xs:attribute>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="TLocalRepo">
+    <xs:complexContent>
+      <xs:extension base="tns:TIdentifiable">
+        <xs:attribute name="dir" use="required" type="xs:string">
+          <xs:annotation><xs:documentation>
+            The directory, where the local repository can be found.
+          </xs:documentation></xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="layout" use="optional" type="xs:string" default="default"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="TRemoteRepo">
+    <xs:complexContent>
+      <xs:extension base="tns:TIdentifiable">
+        <xs:attribute name="url" use="required" type="xs:string"/>
+        <xs:attribute name="handler" use="optional" type="xs:string" default="default"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="TInstance">
+    <xs:complexContent>
+      <xs:extension base="tns:TIdentifiable">
+        <xs:attribute name="baseDir" use="required" type="xs:string"/>
+        <xs:attribute name="wmHomeDir" use="optional" type="xs:string" default="${baseDir}/../../.."/>
+        <xs:attribute name="packagesDir" use="optional" type="xs:string" default="${baseDir}/packages"/>
+        <xs:attribute name="configDir" use="optional" type="xs:string" default="${baseDir}/config"/>
+        <xs:attribute name="logsDir" use="optional" type="xs:string" default="${baseDir}/logs"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="TIdentifiable">
+    <xs:complexContent>
+      <xs:extension base="tns:TPropertiesContainer">
+        <xs:attribute name="id" type="xs:string" use="required"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="TPropertiesContainer">
+    <xs:sequence>
+      <xs:element name="property" minOccurs="0" maxOccurs="unbounded">
+        <xs:complexType>
+          <xs:annotation><xs:documentation>
+            A property must either have a value attribute, or a non-empty body.
+          </xs:documentation></xs:annotation>
+          <xs:simpleContent>
+            <xs:extension base="xs:string">
+              <xs:attribute name="key" use="required" type="xs:string"/>
+              <xs:attribute name="value" use="optional" type="xs:string"/>
+            </xs:extension>
+          </xs:simpleContent>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>
