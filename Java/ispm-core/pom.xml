@@ -33,6 +33,11 @@
   		<artifactId>afw-core</artifactId>
   		<version>0.5-SNAPSHOT</version>
   	</dependency>
+  	<dependency>
+  		<groupId>org.apache.groovy</groupId>
+  		<artifactId>groovy</artifactId>
+  		<version>4.0.0-alpha-1</version>
+  	</dependency>
   </dependencies>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

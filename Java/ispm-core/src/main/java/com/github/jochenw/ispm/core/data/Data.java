@@ -4,6 +4,9 @@ import java.util.Map;
 
 import com.softwareag.util.IDataMap;
 import com.wm.data.IData;
+import com.wm.data.IDataCursor;
+import com.wm.data.IDataFactory;
+import com.wm.data.IDataUtil;
 
 /** Utility class, which provides static methods for working with Data objects.
  */
@@ -129,5 +132,27 @@ public class Data {
 			}
 			return list;
 		}
+	}
+
+	public static IDataMap asIDataMap(Object... pValues) {
+		final IDataMap map = new IDataMap();
+		if (pValues != null) {
+			for (int i = 0;  i < pValues.length;  i += 2) {
+				map.put((String) pValues[i], pValues[i+1]);
+			}
+		}
+		return map;
+	}
+
+	public static IData asIData(Object... pValues) {
+		final IData data = IDataFactory.create();
+		if (pValues != null) {
+			final IDataCursor crsr = data.getCursor();
+			for (int i = 0;  i < pValues.length;  i += 2) {
+				IDataUtil.put(crsr, (String) pValues[i], pValues[i+1]);
+			}
+			crsr.destroy();
+		}
+		return data;
 	}
 }

@@ -24,7 +24,7 @@ public class TIspmConfiguration {
 		private final Map<String,String> properties = new HashMap<>();
 
 		public TPropertiesContainer(Locator pLocator) {
-			locator = Objects.requireNonNull(pLocator, "Locator");
+			locator = pLocator;
 		}
 
 		public Locator getLocator() { return locator; }
@@ -105,7 +105,7 @@ public class TIspmConfiguration {
 	private final Map<String,TRemoteRepo> remoteRepos = new LinkedHashMap<>();
 	private final Map<String,TInstance> instances = new LinkedHashMap<>();
 
-	public void forEach(FailableConsumer<TPlugin,?> pConsumer) { plugins.forEach(Functions.asConsumer(pConsumer)); }
+	public void forEachPlugin(FailableConsumer<TPlugin,?> pConsumer) { plugins.forEach(Functions.asConsumer(pConsumer)); }
 	public void forEachLocalRepo(FailableBiConsumer<String,TLocalRepo,?> pConsumer) { localRepos.forEach(Functions.asBiConsumer(pConsumer)); }
 	public void forEachRemoteRepo(FailableBiConsumer<String,TRemoteRepo,?> pConsumer) { remoteRepos.forEach(Functions.asBiConsumer(pConsumer)); }
 	public void forEachInstance(FailableBiConsumer<String,TInstance,?> pConsumer) { instances.forEach(Functions.asBiConsumer(pConsumer)); }

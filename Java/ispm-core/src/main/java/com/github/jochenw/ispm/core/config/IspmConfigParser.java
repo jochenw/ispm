@@ -111,7 +111,7 @@ public class IspmConfigParser {
 					  if (isElement(NS, "remoteRepo", pUri, pLocalName)) {
 						  final String id = requireAttribute(pAttrs, "id");
 						  final String url = requireAttribute(pAttrs, "url");
-						  final String handler = requireAttribute(pAttrs, "handler");
+						  final String handler = getAttribute(pAttrs, "handler", "default");
 						  currentContainer = new TRemoteRepo(getDocumentLocator(), id, url, handler);
 					  } else {
 						  throw error("Expected element " + asQName(NS, "remoteRepo") + ", got " + asQName(pUri, pLocalName));
