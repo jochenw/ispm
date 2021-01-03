@@ -29,7 +29,7 @@ public class IspmApplicationTest {
 		assertTrue(Files.isDirectory(repoDir));
 		final Path projectsDir = repoDir.resolve("projects");
 		assertTrue(Files.isDirectory(projectsDir));
-		final IspmApplication ispmApp = new IspmApplication(instanceDir, "WxIspm") {
+		final IspmApplication ispmApp = new IspmApplication(instanceDir, "WxIspm", pModules) {
 			@Override
 			protected Path getBuiltinPluginsDir() {
 				return Paths.get("src/main/resources/com/github/jochenw/ispm/core/components/script-plugins");

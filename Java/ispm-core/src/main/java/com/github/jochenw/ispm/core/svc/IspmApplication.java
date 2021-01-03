@@ -40,8 +40,11 @@ import com.github.jochenw.afw.core.util.Functions.FailableConsumer;
 import com.github.jochenw.afw.core.util.Functions.FailableFunction;
 import com.github.jochenw.afw.core.util.Scripts;
 import com.github.jochenw.afw.core.util.Tupel;
+import com.github.jochenw.ispm.core.actions.ActivatePackageAction;
 import com.github.jochenw.ispm.core.actions.AddLocalRepoAction;
 import com.github.jochenw.ispm.core.actions.ImportFromLocalRepoAction;
+import com.github.jochenw.ispm.core.components.DefaultServiceInvocator;
+import com.github.jochenw.ispm.core.components.IServiceInvocator;
 import com.github.jochenw.ispm.core.config.IspmConfigParser;
 import com.github.jochenw.ispm.core.config.TIspmConfiguration;
 import com.github.jochenw.ispm.core.config.TIspmConfiguration.TPlugin;
@@ -49,7 +52,7 @@ import com.github.jochenw.ispm.core.model.IspmConfiguration;
 import com.github.jochenw.ispm.core.model.IspmConfigurationBuilder;
 
 import groovy.lang.GroovyRuntimeException;
-import groovyjarjarantlr4.v4.codegen.model.AddToLabelList;
+
 
 public class IspmApplication {
 	private static IspmApplication instance;
@@ -298,7 +301,9 @@ public class IspmApplication {
 			b.bind(Path.class, "currentDir").toInstance(currentDir);
 			b.bind(ImportFromLocalRepoAction.class);
 			b.bind(AddLocalRepoAction.class);
+			b.bind(ActivatePackageAction.class);
 			b.bind(ISymbolicLinksHandler.class).toClass(DefaultSymbolicLinksHandler.class);
+			b.bind(IServiceInvocator.class).toClass(DefaultServiceInvocator.class);
 			findBuiltinPlugins((Module m) -> m.configure(b));
 			tIspmConfiguration.forEachPlugin((tp) -> {
 				final Module module = newModule(tp);

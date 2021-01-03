@@ -15,9 +15,11 @@ public class ActivatePackageAction extends AbstractAction {
 	protected boolean isPackageActive(IInstance pInstance, String pPkgName) {
 		final IDataMap output = invocator.invoke(pInstance, "wm.server.packages:packageListInactive");
 		final String[] inactivePackages = output.getAsStringArray("inactive");
-		for (String inactivePkg : inactivePackages) {
-			if (inactivePkg.equals(pPkgName)) {
-				return false;
+		if (inactivePackages != null) {
+			for (String inactivePkg : inactivePackages) {
+				if (inactivePkg.equals(pPkgName)) {
+					return false;
+				}
 			}
 		}
 		return true;
