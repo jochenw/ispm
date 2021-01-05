@@ -4,6 +4,8 @@ The IS Project Manager (or ispm, for short) is a utility, which aims to provide 
 
 The ispm grew out of a customer project, in which we had to develop, and maintain, hundreds of IS projects, so-called packages. By using a properly configured ispm, you will be able to clone an IS project from your hard drive, build, and install it into your local development IS within seconds.
 
+[toc]
+
 ## Goals (What does it do?)
 
 It provides services, that an IS developer maay use, for example:
@@ -211,5 +213,89 @@ A Groovy-Plugin is a Groovy-Script, that returns a [module](#modules). Groovy sc
 
 1. The local repository handler "default" is implemented as a [Groovy plugin](https://github.com/jochenw/ispm/blob/master/Java/ispm-core/src/main/resources/com/github/jochenw/ispm/core/components/script-plugins/DefaultLocalRepoLayout.groovy).
 2. The remote repository handler "azure" is implemented as [another Groovy plugin](https://github.com/jochenw/ispm/blob/master/Java/ispm-core/src/main/resources/com/github/jochenw/ispm/core/components/script-plugins/DefaultRemoteRepoHandler.groovy)
+
+
+
+So, feel free to write your own plugins. Additionally, feel free to contact the WxIspm author for help.
+
+
+
+#### Modules
+
+
+
+When writing your own plugins, you should understand, what a Module is. In a few words:
+
+
+
+Internally, WxIspm is using a [dependency injection framework](https://de.wikipedia.org/wiki/Dependency_Injection). 
+
+There is a thing, called [component factory](https://github.com/jochenw/afw/blob/master/afw-core/src/main/java/com/github/jochenw/afw/core/inject/IComponentFactory.java)  Whenever you need to do something, and may reasonably assume, that there's a preexisting piece of code, that you should be able to use, then ask the component factory for it. For example, if you need to invoke Git, then you'd ask for the "GitHandler".
+
+That works, because initially, there is a module, that tells the component factory "If anyone's asking for a GitHandler, then give him..."
+
+The beauty of the system is, that it makes some things extremely easy, like mocking (just tell the component factory to return a mock. rather than the real thing), or implementing minor changes (tell the component factory to return a proxy object, that internally uses the real component).
+
+For more details on dependency injection, and modules, I very much recommend that you study the docs for [Google Guice](https://github.com/google/guice/wiki).
+
+## Services
+
+In this section, we provide a list of the public services, that WxIspm provides. Or, in other words: A list of services in the namespace **wx.ispm.pub**.
+
+| Service                                               | Short description                                            |
+| ----------------------------------------------------- | ------------------------------------------------------------ |
+| [compilePackages](#compilePackages)                   | Compiles the Java services in one, or more, packages         |
+| [compileAndReloadPackages](#compileAndReloadPackages) | Compiles the Java services in one, or more, packages, and reloads those packages afterwards. |
+| [reloadPackages](#reloadPackages)                     | Reloads one, or more, packages.                              |
+
+
+
+
+
+### compilePackages
+
+The service **wx.ispm.pub.admin:compilePackages** invokes the Java compiler to convert the Java service descriptors of one, or more packages, into class files. This service is intended as a replacement for the service **wm.server.packages:compilePackage**. The latter service is generally fine, except that, whenever there is a problem, it simply reports "Unable to locate compiler", leaving absolutely no clue about the cause. The WxIspm service is designed to work in a number of cases, when the IS service doesn't. If there's no other help, it should at least provide a clear explanation, what's wrong.
+
+
+
+##### Input Parameters
+
+* packageNames A string list of package names, that are being compiled.
+
+##### Output Parameters
+
+* messages A list of messages, that indicate what has (or hasn't been done).
+
+### compileAndReloadPackages
+
+The service **wx.ispm.pub.admin:compileAndReloadPackages** invokes the Java compiler to convert the Java service descriptors of one, or more packages, into class files. This service is intended as a replacement for the service **wm.server.packages:compilePackage**. The latter service is generally fine, except that, whenever there is a problem, it simply reports "Unable to locate compiler", leaving absolutely no clue about the cause. The WxIspm service is designed to work in a number of cases, when the IS service doesn't. If there's no other help, it should at least provide a clear explanation, what's wrong.
+After compiling, the service will also reload those packages. This is useful, because you'd need to do that anyways, afterwards.
+
+##### Input Parameters
+
+* packageNames A string list of package names, that are being compiled, and reloaded.
+
+##### Output Parameters
+
+* messages A list of messages, that indicate what has (or hasn't been done).
+
+### reloadPackages
+
+The service **wx.ispm.pub.admin:reloadPackages** is a replacement for **wx.server.packages:packageReload**. In fact, the former service invokes the latter internally. The neat thing is, that the WxIspm service is generally quicker, than the latter, because it applies a simple trick:
+
+1. Before reloading package A, it temporarily removes all dependencies that other packages have on A.
+2. It reloads package A. This is running quicker as usual, because, right now, no package depends on A. So, reloading A is sufficient, and no other packages need reloading. (Keep in mind, that WxIspm is running on a developers IS, so there's no harm in that.)
+3. After package A is reloaded, the dependencies on A are restored, and everything's back to normal.
+
+#### Input Parameters
+
+* packageNames A string list of package names, that are being reloaded.
+
+##### Output Parameters
+
+* messages A list of messages, that indicate what has (or hasn't been done).
+
+
+
 
 

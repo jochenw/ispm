@@ -21,7 +21,6 @@ public class IspmApplicationTest {
 	}
 
 	public static IspmApplication setup(Class<?> pTestClass, Module... pModules) {
-		final String dirName = pTestClass.getSimpleName();
 		final Path sourceDir = Paths.get("src/test/resources/IspmApplicationTest");
 		final Path testDir = Tests.setupTestDirectory(pTestClass, sourceDir);
 		final Path instanceDir = testDir.resolve("wmHomeDir/IntegrationServer/instances/default");
@@ -61,5 +60,4 @@ public class IspmApplicationTest {
 		assertSame(componentFactory, componentFactory.requireInstance(IComponentFactory.class));
 		assertSame(ispmApp, componentFactory.requireInstance(IspmApplication.class));
 	}
-
 }
