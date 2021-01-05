@@ -1,8 +1,10 @@
+/**
+ * This Groovy script implements the "default" local repository layout.
+ */
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.github.jochenw.afw.core.inject.IComponentFactory;
-import com.github.jochenw.afw.core.inject.IComponentFactoryAware;
 import com.github.jochenw.afw.core.inject.ComponentFactoryBuilder.Binder;
 import com.github.jochenw.afw.core.inject.ComponentFactoryBuilder.Module;
 import com.github.jochenw.afw.core.log.ILog;
@@ -13,7 +15,7 @@ import com.github.jochenw.ispm.core.model.ILocalRepoLayout;
 import com.github.jochenw.ispm.core.model.ILocalRepoLayout.IPkg
 import com.github.jochenw.ispm.core.model.ILocalRepoLayout.IProject;
 
-// Create the ILocalRepoLayout
+// Create the actual implementation.
 def localRepoLayout = new ILocalRepoLayout() {
     private ILog log;
     public void init(IComponentFactory pComponentFactory) {
@@ -70,7 +72,7 @@ def localRepoLayout = new ILocalRepoLayout() {
 	public ILocalRepoLayout.IPkg getPackage(ILocalRepo pRepository, ILocalRepoLayout.IProject pProject, String pPkgId) {
 	}
 };
-// Create, and return the module.
+// Create, and return the module. Every plugin scriptt is supposed to return such a module.
 return new Module(){
     public void configure(Binder pBinder) {
         pBinder.bind(ILocalRepoLayout.class, "default").toInstance(localRepoLayout);
