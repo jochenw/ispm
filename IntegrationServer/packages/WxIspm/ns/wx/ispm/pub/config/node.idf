@@ -5,4 +5,38 @@
   <value name="node_subtype">unknown</value>
   <value name="node_nsName">wx.ispm.pub.config</value>
   <value name="is_public">false</value>
+  <value name="encodeutf8">true</value>
+  <value name="shared">cHJpdmF0ZSBzdGF0aWMgTWFwPFN0cmluZyxTdHJpbmc+IGFzUHJvcGVydHlNYXAoSURhdGEgcERh
+dGEpIHsKCWlmIChwRGF0YSA9PSBudWxsKSB7CgkJcmV0dXJuIG51bGw7Cgl9IGVsc2UgewoJCWZp
+bmFsIElEYXRhQ3Vyc29yIGNyc3IgPSBwRGF0YS5nZXRDdXJzb3IoKTsKCQlpZiAoY3Jzci5maXJz
+dCgpKSB7CgkJCWZpbmFsIE1hcDxTdHJpbmcsU3RyaW5nPiBtYXAgPSBuZXcgSGFzaE1hcDw+KCk7
+CgkJCWRvIHsKCQkJCWZpbmFsIFN0cmluZyBrZXkgPSBjcnNyLmdldEtleSgpOwoJCQkJZmluYWwg
+T2JqZWN0IHZhbHVlID0gY3Jzci5nZXRWYWx1ZSgpOwoJCQkJaWYgKHZhbHVlID09IG51bGwpIHsK
+CQkJCQl0aHJvdyBuZXcgSWxsZWdhbEFyZ3VtZW50RXhjZXB0aW9uKCJUaGUgdmFsdWUgZm9yIHBy
+b3BlcnR5ICIgKyBrZXkgKyAiIG11c3Qgbm90IGJlIG51bGwuIik7CgkJCQl9IGVsc2UgaWYgKHZh
+bHVlIGluc3RhbmNlb2YgU3RyaW5nKSB7CgkJCQkJbWFwLnB1dChrZXksIChTdHJpbmcpIHZhbHVl
+KTsKCQkJCX0gZWxzZSB7CgkJCQkJdGhyb3cgbmV3IElsbGVnYWxBcmd1bWVudEV4Y2VwdGlvbigi
+VGhlIHZhbHVlIGZvciBwcm9wZXJ0eSAiICsga2V5CgkJCQkJCQkgICAgICAgICAgICAgICAgICAg
+ICAgICAgICArICIgbXVzdCBiZSBhIHN0cmluZywgbm90IGFuIGluc3RhbmNlIG9mICIgKyB2YWx1
+ZS5nZXRDbGFzcygpLmdldE5hbWUoKSk7CgkJCQl9CgkJCX0gd2hpbGUgKGNyc3IubmV4dCgpKTsK
+CQkJY3Jzci5kZXN0cm95KCk7CgkJCXJldHVybiBtYXA7CgkJfSBlbHNlIHsKCQkJY3Jzci5kZXN0
+cm95KCk7CgkJCXJldHVybiBudWxsOwoJCX0KCX0KfQ==</value>
+  <value name="extends"></value>
+  <array name="implements" type="value" depth="1">
+  </array>
+  <array name="imports" type="value" depth="1">
+    <value>java.nio.file.Files</value>
+    <value>java.nio.file.Path</value>
+    <value>java.nio.file.Paths</value>
+    <value>java.util.HashMap</value>
+    <value>java.util.Map</value>
+    <value>com.github.jochenw.afw.core.util.Strings</value>
+    <value>com.github.jochenw.ispm.core.actions.AddInstanceAction</value>
+    <value>com.github.jochenw.ispm.core.actions.AddLocalRepoAction</value>
+    <value>com.github.jochenw.ispm.core.actions.AddPluginAction</value>
+    <value>com.github.jochenw.ispm.core.actions.AddRemoteRepoAction</value>
+    <value>com.github.jochenw.ispm.core.data.Data</value>
+    <value>com.github.jochenw.ispm.core.svc.IspmApplication</value>
+    <value>com.softwareag.util.IDataMap</value>
+  </array>
 </Values>

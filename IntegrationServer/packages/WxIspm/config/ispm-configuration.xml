@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:ispm-config
+             xmlns:tns="http://namespaces.github.com/jochenw/ispm/core/config/1.0.0"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://namespaces.github.com/jochenw/ispm/core/config/1.0.0 ispm-config.xsd ">
+  <tns:plugins/>
+  <tns:localRepos/>
+  <tns:remoteRepos/>
+  <tns:instances/>
+</tns:ispm-config>

@@ -4,6 +4,10 @@ The IS Project Manager (or ispm, for short) is a utility, which aims to provide 
 
 The ispm grew out of a customer project, in which we had to develop, and maintain, hundreds of IS projects, so-called packages. By using a properly configured ispm, you will be able to clone an IS project from your hard drive, build, and install it into your local development IS within seconds.
 
+Originally, the project was designed as a command line tool (with the intention to enable autoupdates, etc.) However, upon using an initial implementation, it turned out that the media disruption between Designer as the most important tool, and the command line was a problem. Besides, performance wasn't as good as expected, and a command line tool, that's only running on occasion, is not a good place for implementing a cache. So, the reimplementation as an Is package, seemed prudent.
+
+In what follows, we'll be using the terms WxIspm, and ispm, synonymously.
+
 [toc]
 
 ## Goals (What does it do?)
@@ -244,12 +248,92 @@ In this section, we provide a list of the public services, that WxIspm provides.
 
 | Service                                               | Short description                                            |
 | ----------------------------------------------------- | ------------------------------------------------------------ |
+| [addInstance](#addinstance)                           | Adds a new instance to the WxIspm configuration.             |
 | [compilePackages](#compilePackages)                   | Compiles the Java services in one, or more, packages         |
 | [compileAndReloadPackages](#compileAndReloadPackages) | Compiles the Java services in one, or more, packages, and reloads those packages afterwards. |
 | [reloadPackages](#reloadPackages)                     | Reloads one, or more, packages.                              |
 
 
 
+### addInstance
+
+The service **wx.ispm.pub.config:addInstance** creates a new instance in the WxIspm configuration. After creating the instance, WxIspm reinitializes itself.
+
+The behaviour is equivalent to entering the instance manually into the ispm config file, and reloading the package WxIspm.
+
+
+
+#### Input Parameters
+
+- *id* The instance id (Required). Note, that the instance id must be unique with regard to all other instances. (However, it is perfectly valid to use the same id for an instance, and a local repository.) 
+- *baseDir* The instance directory, for example *F:\SoftwareAG\webMethods103\IntegrationServer\instances\default*. (Required).
+- *wmHomeDir* The instances webMethods installation directory. Optional, defaults to *${baseDir}/../../..*.
+- *packagesDir* The instances "packages" directory. Optional, defaults to *${baseDir}/packages*.
+- *configDir* The instances "config" directory. Optional, defaults to *${baseDir}/config*.
+- *logsDir* The instances "logs" directory. Optional, defaults to *${baseDir}/logs*.
+- *properties* An optional document with instance properties. Suggested property keys for enabling remote access to the instance are
+  - is.admin.url (Example: **http://127.0.0.1:10555/**)
+  - is.admin.user (Example: **Administrator**)
+  - is.admin.pass (Example: **manage**)
+
+
+
+#### Output Parameters
+
+None
+
+
+
+#### See also
+
+- [addLocalRepository](#addlocalrepository)
+- [addRemoteRepository](#addRemoteRepository)
+- [addPlugin](#addPlugin)
+
+
+
+### addLocalRepository
+
+The service **wx.ispm.pub.config:addLocalRepository** creates a new local repository in the WxIspm configuration. After creating the local repository, WxIspm reinitializes itself.
+
+The behaviour is equivalent to entering the local repository manually into the ispm config file, and reloading the package WxIspm.
+
+
+
+#### Input Parameters
+
+- *id* The local repository id (Required). Note, that the instance id must be unique with regard to all other local repositories. (However, it is perfectly valid to use the same id for an instance, and a local repository.) 
+- *dir* The repositories directory, for example *F:\GIT-DEV103*. (Required).
+- *layout* The id of the local repository layour. Optional, defaults to "default".
+- *properties* An optional document with properties, that the local repository should have.
+
+
+
+#### Output Parameters
+
+None
+
+
+
+#### See also
+
+- [addInstance](#addinstance)
+- [addRemoteRepository](#addRemoteRepository)
+- [addPlugin](#addPlugin)
+
+
+
+### addRemoteRepository
+
+The service **wx.ispm.pub.config:addRemoteRepository** creates a new instance in the WxIspm configuration. After creating the remote repository, WxIspm reinitializes itself.
+
+The behaviour is equivalent to entering the remote repository manually into the ispm config file, and reloading the package WxIspm.
+
+
+#### Input Parameters
+
+- *id* The remote repository id (Required). Note, that the instance id must be unique with regard to all other remote repositories. (However, it is perfectly valid to use the same id for an instance, or a local repository, and a remote repository.)
+- *url* The remote repositories URL, for example **https://dev.azure.com/customer/projectGroup**.
 
 
 ### compilePackages
@@ -279,6 +363,73 @@ After compiling, the service will also reload those packages. This is useful, be
 
 * messages A list of messages, that indicate what has (or hasn't been done).
 
+### importProjectFromLocalRepository
+
+
+
+The service **wx.ispm.pub.admin:importProjectFromLocalRepository**
+
+is invoked to make a project's packages available in the currently running IS for local development mode. More precisely, the service performs the following steps:
+
+1. The selected project is scanned for Is packages. (In the case of the default local repository layout, this means, that subdirectories in the folder **<PROJECT_DIR>/IntegrationServer/packages** are being scanned for subdirectories.)
+2. For every package in the project:
+   1. If not already present: A symbolic link (Linux, Unix, MacOS), or a directory junction  (Windows) is being created in the instances "packages" directory, pointing to the projects package directory.
+   2. If the symbolic link had to be created: Activates the package in the currently running IS. Otherwise, reloads the package.
+
+
+
+#### Input Parameters
+
+
+
+- *localRepoId*  The id of the local repository, from which a project is being imported.
+- *projectId* The imported projects Id.
+
+
+
+#### Output Parameters
+
+[Action Output Parameters](#action-output-parameters)
+
+
+
+See Also
+
+- [importFromRemoteRepository](#importfromremoterepository)
+
+
+
+### importProjectFromRemoteRepository
+
+The service **wx.ispm.pub.admin:importProjectFromRemoteRepository** is invoked to clone a project from a remote repository to a local repository, and then make the project's packages available in the currently running IS for local development mode. More precisely, the service performs the following steps:
+
+1. Checks, if a project with the given Id is already present in the local repository. If that is the case, refuses operation, unless the parameter *overwriteExisting* is given (in which case the project in the local repository would be deleted).
+2. Clones the project from the remote repository to the local repository by doing a "git clone", a "svn checkout", or whatever the remote repository handler deems appropriate.
+3. Performs necessary preparations on the cloned repository (Examples: Configuring git's *user.name*, and *user.email* settings, switching to the correct branch, etc.)
+4. Invokes [importProjectFromLocalRepository](#importprojectfromremoterepository) to import the cloned project into the currently running Is.
+
+
+
+#### Input Parameters
+
+- *remoteRepoId* The remote repository, from which to clone the project.
+- *localRepoId* The local repository, to which the project is being cloned.
+- *projectID* The project, which is being imported.
+
+
+
+#### Output Parameters
+
+[Action Output Parameters](#action-output-parameters)
+
+
+
+#### See also
+
+- [importProjectFromLocalRepository](#importProjectFromLocalRepository)
+
+
+
 ### reloadPackages
 
 The service **wx.ispm.pub.admin:reloadPackages** is a replacement for **wx.server.packages:packageReload**. In fact, the former service invokes the latter internally. The neat thing is, that the WxIspm service is generally quicker, than the latter, because it applies a simple trick:
@@ -294,6 +445,48 @@ The service **wx.ispm.pub.admin:reloadPackages** is a replacement for **wx.serve
 ##### Output Parameters
 
 * messages A list of messages, that indicate what has (or hasn't been done).
+
+
+
+## Configuration
+
+
+
+WxIspm is configured by a set of files, that we'll cover in the following section:
+
+
+
+### Locations
+
+
+
+For all files, a default version exists, that is present in the directory **<INST_DIR>/packages/WxIspm/config**. If you intend to change the defaults, then it is recommended to begin by copying the default version to **<INST_DIR>/config/packages/WxIspm**, and editing the copy. By doing so, you can redeploy a new version without loosing your changes.
+
+
+### Logging
+
+WxIspm uses Apache Log4J, version 2, for internal logging purposes. Configuration is done by reading the file log4j2.xml, either from **<INST_DIR>/config/packages/WxIspm** (preferred), or from **<INST_DIR>/packages/WxIspm/config**.
+
+
+### Main configuration
+
+The main configuration file is the file **ispm-configuration.xml**, again located in either of the [standard locations](#locations). The purpose of the file is to specify the [instances](#instances), [local repositories](#local-repositories), [remote repositories](#remote-repositories), and [plugins](#plugins), plus object specific properties. This file may be validated against the schema in **<INST_DIR>/packages/WxIspm/config/ispm-config.xml**.
+
+
+
+### Global properties
+
+Finally, there is a file with default properties (also called global properties). Actions, repository layouts, and handlers, are supposed to prefer their object specific properties, but should fall back to the default properties, if necessary. For example, the remote repository handler "azure" will read the properties 
+*git.user.name*, or *git.user.email* from the remote repository properties, if they are present there. If not, the handler will read the global properties.
+
+The global properties are being read from a file, which is named **ispm.properties**, which is searched in the [standard locations](#locations).
+
+Additionally, there is a file named **ispm-factory.properties** with properties, that aren't supposed to be changed. You aren't supposed to change this file. If you need to customize properties, use the **ispm.properties**, which take precedence over the factory properties.
+
+
+
+
+
 
 
 

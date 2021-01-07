@@ -26,6 +26,7 @@ import com.github.jochenw.afw.core.components.ISymbolicLinksHandler;
 import com.github.jochenw.afw.core.impl.DefaultLifecycleController;
 import com.github.jochenw.afw.core.inject.ComponentFactoryBuilder.Module;
 import com.github.jochenw.afw.core.inject.IComponentFactory;
+import com.github.jochenw.afw.core.inject.Scopes;
 import com.github.jochenw.afw.core.inject.simple.SimpleComponentFactoryBuilder;
 import com.github.jochenw.afw.core.io.IReadable;
 import com.github.jochenw.afw.core.log.ILogFactory;
@@ -41,7 +42,10 @@ import com.github.jochenw.afw.core.util.Functions.FailableFunction;
 import com.github.jochenw.afw.core.util.Scripts;
 import com.github.jochenw.afw.core.util.Tupel;
 import com.github.jochenw.ispm.core.actions.ActivatePackageAction;
+import com.github.jochenw.ispm.core.actions.AddInstanceAction;
 import com.github.jochenw.ispm.core.actions.AddLocalRepoAction;
+import com.github.jochenw.ispm.core.actions.AddPluginAction;
+import com.github.jochenw.ispm.core.actions.AddRemoteRepoAction;
 import com.github.jochenw.ispm.core.actions.ImportFromLocalRepoAction;
 import com.github.jochenw.ispm.core.components.DefaultServiceInvocator;
 import com.github.jochenw.ispm.core.components.IServiceInvocator;
@@ -299,9 +303,13 @@ public class IspmApplication {
 			b.bind(IspmConfiguration.class).toInstance(ispmConfiguration);
 			b.bind(IspmApplication.class).toInstance(IspmApplication.this);
 			b.bind(Path.class, "currentDir").toInstance(currentDir);
-			b.bind(ImportFromLocalRepoAction.class);
-			b.bind(AddLocalRepoAction.class);
-			b.bind(ActivatePackageAction.class);
+			b.bind(ImportFromLocalRepoAction.class).in(Scopes.NO_SCOPE);
+			b.bind(AddLocalRepoAction.class).in(Scopes.NO_SCOPE);
+			b.bind(ActivatePackageAction.class).in(Scopes.NO_SCOPE);
+			b.bind(AddInstanceAction.class).in(Scopes.NO_SCOPE);
+			b.bind(AddLocalRepoAction.class).in(Scopes.NO_SCOPE);
+			b.bind(AddPluginAction.class).in(Scopes.NO_SCOPE);
+			b.bind(AddRemoteRepoAction.class).in(Scopes.NO_SCOPE);
 			b.bind(ISymbolicLinksHandler.class).toClass(DefaultSymbolicLinksHandler.class);
 			b.bind(IServiceInvocator.class).toClass(DefaultServiceInvocator.class);
 			findBuiltinPlugins((Module m) -> m.configure(b));
@@ -345,8 +353,14 @@ public class IspmApplication {
 			if (Strings.isEmpty(script)) {
 				throw new IllegalStateException("A plugin must either have a class name, or a script.");
 			} else {
-				final Path p = Paths.get("./packages/" + ispmPackageName + "/config/scripts", script);
-				if (Files.isRegularFile(p)) {
+				final Path p1 = Paths.get("./packages/" + ispmPackageName + "/config/scripts", script);
+				final Path p2 = Paths.get("./config/packages/" + ispmPackageName + "/config/scripts", script);
+				final Path p;
+				if (Files.isRegularFile(p2)) {
+					p = p2;
+				} else if (Files.isRegularFile(p1)) {
+					p = p1;
+				} else {
 					throw new DomHelper.LocalizableException(pPlugin.getLocator(),
 							"Script file " + script + " not found for plugin");
 				}

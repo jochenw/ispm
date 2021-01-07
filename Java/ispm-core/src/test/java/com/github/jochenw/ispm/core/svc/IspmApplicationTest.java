@@ -42,7 +42,7 @@ public class IspmApplicationTest {
 		assertNull(ispmConfiguration.getLocalRepo("repo"));
 		final TIspmConfiguration tIspmConfiguration = ispmApp.getTIspmConfiguration();
 		final AddLocalRepoAction action = componentFactory.requireInstance(AddLocalRepoAction.class);
-		action.addLocalRepo("test", "default", projectsDir.toAbsolutePath());
+		action.addLocalRepo("test", "default", projectsDir.toAbsolutePath(), null);
 		final IComponentFactory componentFactory2 = ispmApp.getComponentFactory();
 		assertNotSame(componentFactory, componentFactory2);
 		final IspmConfiguration ispmConfiguration2 = ispmApp.getIspmConfiguration();

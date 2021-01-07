@@ -5,4 +5,16 @@
   <value name="node_subtype">unknown</value>
   <value name="node_nsName">wx.ispm.pub.admin</value>
   <value name="is_public">false</value>
+  <value name="encodeutf8">true</value>
+  <value name="shared"></value>
+  <value name="extends"></value>
+  <array name="implements" type="value" depth="1">
+  </array>
+  <array name="imports" type="value" depth="1">
+    <value>com.github.jochenw.ispm.core.actions.ImportFromLocalRepoAction</value>
+    <value>com.github.jochenw.ispm.core.data.Data</value>
+    <value>com.github.jochenw.ispm.core.model.IspmConfiguration</value>
+    <value>com.github.jochenw.ispm.core.svc.IspmApplication</value>
+    <value>com.softwareag.util.IDataMap</value>
+  </array>
 </Values>
