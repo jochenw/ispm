@@ -22,6 +22,6 @@ public class DefaultServiceInvocator implements IServiceInvocator {
 
 	@Override
 	public boolean isInvocable(IInstance pInstance) {
-		return true;
+		return "local".equals(pInstance.getId());
 	}
 }

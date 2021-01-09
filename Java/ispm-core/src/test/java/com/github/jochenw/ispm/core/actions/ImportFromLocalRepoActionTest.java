@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.jochenw.ispm.core.actions.AbstractAction.Context;
 import com.github.jochenw.ispm.core.components.IServiceInvocator;
 import com.github.jochenw.ispm.core.model.IInstance;
 import com.github.jochenw.ispm.core.model.ILocalRepo;
@@ -89,12 +90,12 @@ class ImportFromLocalRepoActionTest {
 		final ILocalRepo localRepo = configuration.requireLocalRepo("test");
 		assertNotNull(localRepo);
 		assertTrue(serviceInvocator.invocations.isEmpty());
-		try {
-			action.run(instance, localRepo, "WxIspm");
-			fail("Expected Exception");
-		} catch (IllegalStateException e) {
-			assertEquals("Package WxIspm is already present in instance local, and not overwritable.", e.getMessage());
-		}
+		final Context ctx = action.importFromLocalRepo(null, instance, localRepo, "WxIspm");
+		assertNotNull(ctx);
+		final Throwable t = ctx.getError();
+		assertNotNull(t);
+		assertTrue(t instanceof IllegalStateException);
+		assertEquals("Package WxIspm is already present in instance local, and not overwritable.", t.getMessage());
 		assertTrue(serviceInvocator.invocations.isEmpty());
 	}
 

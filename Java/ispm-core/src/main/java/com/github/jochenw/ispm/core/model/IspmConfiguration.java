@@ -2,6 +2,7 @@ package com.github.jochenw.ispm.core.model;
 
 import java.util.NoSuchElementException;
 
+import com.github.jochenw.afw.core.inject.IComponentFactory;
 import com.github.jochenw.afw.core.util.Functions.FailableConsumer;
 
 public interface IspmConfiguration {
@@ -31,5 +32,23 @@ public interface IspmConfiguration {
 			throw new NoSuchElementException("Instance not found: " + pId);
 		}
 		return instance;
+	}
+	public default ILocalRepoLayout requireLocalRepoLayout(IComponentFactory pComponentFactory, ILocalRepo pLocalRepo) {
+		final String layoutId = pLocalRepo.getLayout();
+		final ILocalRepoLayout layout = pComponentFactory.getInstance(ILocalRepoLayout.class, layoutId);
+		if (layout == null) {
+			throw new IllegalStateException("Local repository layout " + layoutId
+					                        + " not found for local repository " + pLocalRepo.getId());
+		}
+		return layout;
+	}
+	public default IRemoteRepoHandler requireRemoteRepoHandler(IComponentFactory pComponentFactory, IRemoteRepo pRemoteRepo) {
+		final String handlerId = pRemoteRepo.getHandler();
+		final IRemoteRepoHandler handler = pComponentFactory.getInstance(IRemoteRepoHandler.class, handlerId);
+		if (handler == null) {
+			throw new IllegalStateException("Remote repository handler " + handlerId
+					                        + " not found for remote repository " + pRemoteRepo.getId());
+		}
+		return handler;
 	}
 }

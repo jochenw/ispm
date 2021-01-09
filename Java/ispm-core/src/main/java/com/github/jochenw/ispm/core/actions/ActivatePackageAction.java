@@ -25,26 +25,28 @@ public class ActivatePackageAction extends AbstractAction {
 		return true;
 	}
 
-	public void activatePackage(IInstance pInstance, String pPkgName) {
+	public Context activatePackage(Context pContext, IInstance pInstance, String pPkgName) {
 		final String mName = "activePackage";
-		log.entering(mName, pInstance.getId(), pPkgName);
-		if (invocator.isInvocable(pInstance)) {
-			log.debug(mName, "Instance is invocable: " + pInstance.getId());
-			final boolean packageActive = isPackageActive(pInstance, pPkgName);
-			if (packageActive) {
-				log.debug(mName, "Package is already active: " + pPkgName);
-				log.info(mName, "Reloading package: " + pPkgName);
-				invocator.invoke(pInstance, "wm.server.packages:packageReload", "package", pPkgName);
+		return super.run(pContext, mName, log, (ctx) -> {
+			ctx.action("Activating package " + pPkgName + "in instance " + pInstance.getId());
+			log.entering(mName, pInstance.getId(), pPkgName);
+			if (invocator.isInvocable(pInstance)) {
+				ctx.debug(log, mName, "Instance is invocable: " + pInstance.getId());
+				final boolean packageActive = isPackageActive(pInstance, pPkgName);
+				if (packageActive) {
+					ctx.info(log, mName, "Package is already active: " + pPkgName + ", reloading");
+					invocator.invoke(pInstance, "wm.server.packages:packageReload", "package", pPkgName);
+				} else {
+					ctx.info(log, mName, "Package is not yet active, activating: " + pPkgName);
+					invocator.invoke(pInstance, "wm.server.packages:packagesActivate", "package", pPkgName);
+				}
 			} else {
-				log.info(mName, "Activating package: " + pPkgName);
-				invocator.invoke(pInstance, "wm.server.packages:packagesActivate", "package", pPkgName);
+				final String msg = "Unable to acticate package " + pPkgName + " on instance " + pInstance.getId()
+				+ " most likely due to insufficient configuration details.";
+				throw new IllegalStateException(msg);
 			}
-		} else {
-			final String msg = "Unable to acticate package " + pPkgName + " on instance " + pInstance.getId()
-							+ " most likely due to insufficient configuration details.";
-			log.error(mName, msg);
-			throw new IllegalStateException(msg);
-		}
-		log.exiting(mName);
+			log.exiting(mName);
+			ctx.action("Activated package " + pPkgName);
+		});
 	}
 }

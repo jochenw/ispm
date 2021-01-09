@@ -363,9 +363,42 @@ After compiling, the service will also reload those packages. This is useful, be
 
 * messages A list of messages, that indicate what has (or hasn't been done).
 
+
+### deployPackages
+
+The service **wx.ispm.pub.admin:deployPackages** deploys one, or more IS packages from the local IS to a remote system. It does so by running *ABE* on those packages, thus creating a set of deployable files, which are then handed over to *Deployer*.
+
+Basically, this is what a CI/CD system typically does, so nothing that a developer would typically need, at least not in a well structured project. The use case are those rare occasions, where you wish to ignore, or circumvent the CI/CD system. Typical examples would be:
+
+1. The CI/CD server (or important parts of it) is down.
+2. The target server is not in the scope of the CI/CD system.
+3. Local testing is not possibleon your instance,, and you need a deployment after every commit in order to have your local development instance, and the local test instance in sync.
+
+**Note**: This service is not yet implemented. It's only in the planning stage, and expected to be available in WxIspm, version 1.1.
+
+#### Input Parameters
+
+- *packageNames* A list of package names, which are being deployed. (Required)
+- *instanceId* ID of an IS instance, which acts as the target system. (Optional)
+- *isAdminUrl* URL of the target servers IS Administration UI. (Optional)
+- *isAdminUser* Administrative user on the target server. (Optional)
+- *isAdminPass* Password of the administrative user. (Optional)
+
+For access to the target server, you must either
+- Give the *instanceId* parameter (in which case, the properties *is.admin.url*, *is.admin.user*, and *is.admin.pass* must be present on that instance, or
+- give the *isAdminUrl*, *isAdminUser*, and *isAdminPass* parameters.
+
+
+#### Output Parameters
+
+[Action Output Parameters](#action-output-parameters)
+
+#### See also
+
+- [addInstance](#addinstance)
+
+
 ### importProjectFromLocalRepository
-
-
 
 The service **wx.ispm.pub.admin:importProjectFromLocalRepository**
 

@@ -15,6 +15,7 @@ public interface ILocalRepoLayout {
 		public Path getPath();
 	}
 	public void forEach(ILocalRepo pRepository, FailableConsumer<IProject,?> pConsumer);
+	public Path getProjectDir(ILocalRepo pLocalRepo, String pProjectId);
 	public IProject getProject(ILocalRepo pRepository, String pId);
 	public default IProject requireProject(ILocalRepo pRepository, String pId) throws NoSuchElementException {
 		final IProject project = getProject(pRepository, pId);
