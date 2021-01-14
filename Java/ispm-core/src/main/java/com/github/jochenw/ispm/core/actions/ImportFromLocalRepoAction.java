@@ -9,11 +9,11 @@ import com.github.jochenw.afw.core.components.ISymbolicLinksHandler;
 import com.github.jochenw.afw.core.inject.IComponentFactory;
 import com.github.jochenw.afw.core.inject.LogInject;
 import com.github.jochenw.afw.core.log.ILog;
-import com.github.jochenw.ispm.core.actions.AbstractAction.Context;
 import com.github.jochenw.ispm.core.model.IInstance;
 import com.github.jochenw.ispm.core.model.ILocalRepo;
 import com.github.jochenw.ispm.core.model.ILocalRepoLayout;
 import com.github.jochenw.ispm.core.model.ILocalRepoLayout.IProject;
+
 
 public class ImportFromLocalRepoAction extends AbstractAction {
 	private @Inject ISymbolicLinksHandler symLinkHandler;

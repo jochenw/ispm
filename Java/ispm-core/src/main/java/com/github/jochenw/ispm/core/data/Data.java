@@ -90,6 +90,30 @@ public class Data {
 		return data;
 	}
 
+	public static String[] getStrings(Map<String,Object> pMap, String pParameter, String pErrorParameter) {
+		final Object value = getValue(pMap, pParameter);
+		if (value == null) {
+			return null;
+		} else if (value instanceof String[]) {
+			return (String[]) value;
+		} else {
+			throw new IllegalArgumentException("Expected String array for parameter "
+					+ pErrorParameter + ", got " + value.getClass().getName());
+		}
+	}
+
+	public static String[] requireStrings(Map<String,Object> pMap, String pParameter, String pErrorParameter) {
+		final String[] data = getStrings(pMap, pParameter, pErrorParameter);
+		if (data == null) {
+			throw new NullPointerException("Missing parameter: " + pErrorParameter);
+		}
+		return data;
+	}
+
+	public static String[] requireStrings(Map<String,Object> pMap, String pParameter) {
+		return requireStrings(pMap, pParameter, pParameter);
+	}
+
 	public static IDataMap requireIDataMap(Map<String,Object> pMap, String pParameter) {
 		return requireIDataMap(pMap, pParameter, pParameter);
 	}
@@ -154,5 +178,53 @@ public class Data {
 			crsr.destroy();
 		}
 		return data;
+	}
+
+	public static Boolean getBoolean(Map<String,Object> pMap, String pParameter) {
+		return getBoolean(pMap, pParameter, pParameter);
+	}
+
+	public static Boolean getBoolean(Map<String,Object> pMap, String pParameter, String pErrorParameter) {
+		final Object object = getValue(pMap, pParameter);
+		if (object == null) {
+			return null;
+		} else if (object instanceof Boolean) {
+			return ((Boolean) object).booleanValue();
+		} else if (object instanceof String) {
+			final String s = (String) object;
+			if (s.length() == 0) {
+				return null;
+			}
+			return Boolean.parseBoolean(s);
+		} else {
+			throw new IllegalArgumentException("Expected boolean value for parameter "
+					+ pErrorParameter + ", got " + object.getClass().getName());
+		}
+	}
+
+	public static boolean requireBoolean(Map<String,Object> pMap, String pParameter) {
+		return requireBoolean(pMap, pParameter, pParameter);
+	}
+
+	public static boolean requireBoolean(Map<String,Object> pMap, String pParameter, String pErrorParameter) {
+		return requireBoolean(pMap, pParameter, pErrorParameter, false);
+	}
+
+	public static boolean requireBoolean(Map<String,Object> pMap, String pParameter, String pErrorParameter, boolean pDefault) {
+		final Object object = getValue(pMap, pParameter);
+		if (object == null) {
+			return pDefault;
+		} else if (object instanceof Boolean) {
+			return ((Boolean) object).booleanValue();
+		} else if (object instanceof String) {
+			final String s = (String) object;
+			if (s.length() == 0) {
+				return pDefault;
+			}
+			return Boolean.valueOf(s);
+		} else {
+			throw new IllegalArgumentException("Expected boolean value for parameter "
+					+ pErrorParameter + ", got " + object.getClass().getName());
+		}
 	}
 }

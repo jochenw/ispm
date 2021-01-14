@@ -1,6 +1,5 @@
 package com.github.jochenw.ispm.core.actions;
 
-import java.net.URL;
 import java.nio.file.Path;
 
 import javax.inject.Inject;
@@ -20,6 +19,7 @@ import com.github.jochenw.ispm.core.model.IspmConfiguration;
 public class ImportFromRemoteRepoAction extends AbstractAction {
 	private @Inject IComponentFactory componentFactory;
 	private @Inject IspmConfiguration configuration;
+	private @Inject ImportFromLocalRepoAction importFromLocalRepoAction;
 	private @LogInject ILog log;
 
 	public Context importFromRemoteRepo(String pProjectId, String pInstanceId, String pLocalRepoId, String pRemoteRepoId,
@@ -52,8 +52,11 @@ public class ImportFromRemoteRepoAction extends AbstractAction {
 							   + " is invalid, file or other object with the same name already exists.");
 				}
 			}
-			final URL url = handler.getProjectUrl(remoteRepo, projectId);
+			final String url = handler.getProjectUrl(remoteRepo, projectId);
 			handler.cloneProjectTo(remoteRepo, projectId, url, localProjectDir);
+			importFromLocalRepoAction.importFromLocalRepo(ctx, instance, localRepo, projectId);
+			ctx.debug(log, mName, "Imported remote project: " + projectId);
+			ctx.action("Imported remote project: " + projectId);
 		});
 	}
 }

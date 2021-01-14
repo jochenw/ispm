@@ -69,6 +69,11 @@ def localRepoLayout = new ILocalRepoLayout() {
 	        }
 	    });
 	}
+	// Example: Given a local repository, and a project id, return the projects path.
+	// Do not check, whether the project exists.
+	public Path getProjectDir(ILocalRepo pLocalRepo, String pProjectId) {
+	    return pLocalRepo.getDir().resolve(pProjectId);
+	}
 	public ILocalRepoLayout.IPkg getPackage(ILocalRepo pRepository, ILocalRepoLayout.IProject pProject, String pPkgId) {
 	}
 };

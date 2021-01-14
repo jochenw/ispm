@@ -13,4 +13,8 @@
     <value>com.github.jochenw.ispm.core.util.Exceptions</value>
     <value>com.softwareag.util.IDataMap</value>
   </array>
+  <value name="shared"></value>
+  <value name="extends"></value>
+  <array name="implements" type="value" depth="1">
+  </array>
 </Values>

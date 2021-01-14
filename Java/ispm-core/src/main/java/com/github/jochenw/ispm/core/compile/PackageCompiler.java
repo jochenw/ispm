@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -99,6 +98,23 @@ public class PackageCompiler {
 
 	private Consumer<String> log;
 	private Consumer<String> warnLogger;
+	private boolean usingXlintDeprecation, failingOnWarnings;
+
+	public boolean isFailingOnWarnings() {
+		return failingOnWarnings;
+	}
+
+	public void setFailingOnWarnings(boolean pFailingOnWarninings) {
+		failingOnWarnings = pFailingOnWarninings;
+	}
+
+	public boolean isUsingXlintDeprecation() {
+		return usingXlintDeprecation;
+	}
+
+	public void setUsingXlintDeprecation(boolean pUsingXlintDeprecation) {
+		usingXlintDeprecation = pUsingXlintDeprecation;
+	}
 
 	public Consumer<String> getLogger() {
 		return log;
@@ -190,6 +206,9 @@ public class PackageCompiler {
 		JavaCompiler javaCompiler = ToolProvider.getSystemJavaCompiler();
 		final Path codeClassesDir = pData.getCodeClassesDir();
 		final List<String> argList = new ArrayList<String>();
+		if (isUsingXlintDeprecation()) {
+			argList.add("-Xlint:deprecation");
+		}
 		argList.add("-g");
 		argList.add("-classpath");
 		argList.add(getClassPathString(pData));
@@ -199,8 +218,8 @@ public class PackageCompiler {
 			argList.add(asLocalPath(pData, sourceFile));
 		}
 		final int status;
-		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		final ByteArrayOutputStream baes = new ByteArrayOutputStream();
+		final ByteArrayOutputStream baos = newStdOutStream();
+		final ByteArrayOutputStream baes = newStdErrStream();
 		try {
 			Files.createDirectories(codeClassesDir);
 			final String[] args = argList.toArray(new String[argList.size()]);
@@ -213,8 +232,19 @@ public class PackageCompiler {
 		pData.setErrorOutput(baes.toByteArray());
 		pData.setStatus(status);
 		if (status != 0) {
-			
+			throw new IllegalStateException("Compiler exited with status=" + status + ", expected status=0");
 		}
+		if (isFailingOnWarnings()  &&  baes.size() > 0) {
+			throw new IllegalStateException("Compiler exited with warnings, or error messages");
+		}
+	}
+
+	protected ByteArrayOutputStream newStdOutStream() {
+		return new ByteArrayOutputStream();
+	}
+
+	protected ByteArrayOutputStream newStdErrStream() {
+		return new ByteArrayOutputStream();
 	}
 
 	protected Path getManifestFile(Path pPackageDir) {

@@ -1,5 +1,6 @@
 package com.github.jochenw.ispm.core.actions;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public abstract class AbstractAction {
 	public static class Context {
 		private List<String> actionMessages, logMessages;
 		private Throwable error;
-		private String standardOutput, errorOutput;
+		private IoCatcher ioCatcher;
 
 		public void action(String pMessage) {
 			final String msg = Objects.requireNonNull(pMessage);
@@ -54,6 +55,19 @@ public abstract class AbstractAction {
 			logMessages.add("INFO  " + msg);
 		}
 
+
+		public void warn(ILog pLog, String pMName, String pMessage) {
+			final String mName = Objects.requireNonNull(pMName);
+			final String msg = Objects.requireNonNull(pMessage);
+			if (pLog != null) {
+				pLog.warn(mName, msg);
+			}
+			if (logMessages == null) {
+				logMessages = new ArrayList<>();
+			}
+			logMessages.add("WARN " + msg);
+		}
+
 		public void trace(ILog pLog, String pMName, String pMessage) {
 			final String mName = Objects.requireNonNull(pMName);
 			final String msg = Objects.requireNonNull(pMessage);
@@ -69,12 +83,6 @@ public abstract class AbstractAction {
 		public void setError(Throwable pTh) {
 			error = pTh;
 		}
-		public void setStandardOutput(String pStandardOutput) {
-			standardOutput = pStandardOutput;
-		}
-		public void setErrorOutput(String pErrorOutput) {
-			errorOutput = pErrorOutput;
-		}
 		public List<String> getActionMessages() { return actionMessages; }
 		public List<String> getLogMessages() { return logMessages; }
 
@@ -89,11 +97,16 @@ public abstract class AbstractAction {
 				IDataUtil.put(crsr, "errorType", error.getClass().getName());
 				IDataUtil.put(crsr, "errorDetails", Exceptions.toString(error));
 			}
-			if (standardOutput != null) {
-				IDataUtil.put(crsr, "standardOutput", standardOutput);
-			}
-			if (errorOutput != null) {
-				IDataUtil.put(crsr, "errorOutput", errorOutput);
+			final IoCatcher ioc = ioCatcher;
+			if (ioc != null) {
+				final ByteArrayOutputStream baos = ioc.getStandardOut();
+				if (baos != null  &&  baos.size() > 0) {
+					IDataUtil.put(crsr, "stdOutput", baos.toString()); 
+				}
+				final ByteArrayOutputStream baes = ioc.getStandardErr();
+				if (baes != null  &&  baes.size() > 0) {
+					IDataUtil.put(crsr, "errOutput", baes.toString());
+				}
 			}
 			if (actionMessages != null  &&  !actionMessages.isEmpty()) {
 				IDataUtil.put(crsr, "actionMessages", actionMessages.toArray(new String[actionMessages.size()]));
@@ -107,15 +120,22 @@ public abstract class AbstractAction {
 		public Throwable getError() {
 			return error;
 		}
+
+		public IoCatcher getIoCatcher() {
+			return ioCatcher;
+		}
 	}
 
 	protected Context run(Context pCtx, String pMName, ILog pLog, FailableConsumer<Context,?> pConsumer) {
 		final Context ctx = Objects.notNull(pCtx, () -> new Context());
+		ctx.ioCatcher = IoCatcher.reset();
 		try {
 			pConsumer.accept(ctx);
 		} catch (Throwable t) {
 			ctx.setError(t);
 			pLog.error(pMName, t);
+		} finally {
+			IoCatcher.clear();
 		}
 		return ctx;
 	}

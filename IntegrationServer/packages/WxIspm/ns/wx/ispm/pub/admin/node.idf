@@ -11,10 +11,20 @@
   <array name="implements" type="value" depth="1">
   </array>
   <array name="imports" type="value" depth="1">
+    <value>com.wm.lang.ns.NSPackage</value>
+    <value>com.wm.app.b2b.server.InvokeState</value>
+    <value>java.util.ArrayList</value>
+    <value>java.util.List</value>
+    <value>java.util.Stack</value>
+    <value>com.github.jochenw.afw.core.inject.IComponentFactory</value>
     <value>com.github.jochenw.ispm.core.actions.ImportFromLocalRepoAction</value>
+    <value>com.github.jochenw.ispm.core.actions.ImportFromRemoteRepoAction</value>
+    <value>com.github.jochenw.ispm.core.actions.PackageCompilerAction</value>
+    <value>com.github.jochenw.ispm.core.actions.PackageCompilerAction.Option</value>
     <value>com.github.jochenw.ispm.core.data.Data</value>
     <value>com.github.jochenw.ispm.core.model.IspmConfiguration</value>
     <value>com.github.jochenw.ispm.core.svc.IspmApplication</value>
+    <value>com.github.jochenw.ispm.core.svc.IspmApplicationSvc</value>
     <value>com.softwareag.util.IDataMap</value>
   </array>
 </Values>

@@ -16,7 +16,6 @@ import java.util.function.IntConsumer;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.github.jochenw.afw.core.inject.IComponentFactory;
 import com.github.jochenw.afw.core.inject.LogInject;
 import com.github.jochenw.afw.core.log.ILog;
 import com.github.jochenw.afw.core.props.IPropertyFactory;
@@ -25,13 +24,13 @@ import com.github.jochenw.afw.core.util.Executor;
 import com.github.jochenw.afw.core.util.Streams;
 import com.github.jochenw.afw.core.util.Strings;
 import com.github.jochenw.afw.core.util.Systems;
+import com.github.jochenw.ispm.core.actions.IoCatcher;
 import com.github.jochenw.ispm.core.model.IRemoteRepo;
 
 
 
 public class GitExeGitHandler implements IGitHandler {
 	private @LogInject ILog log;
-	private @Inject IComponentFactory componentFactory;
 	private @Inject IPropertyFactory propertyFactory;
 	private @Inject @Named(value="git") Executor executor;
 
@@ -62,11 +61,11 @@ public class GitExeGitHandler implements IGitHandler {
 	}
 	
 	@Override
-	public void clone(IRemoteRepo pRemoteRepo, String pProjectUrl, Path pProjectDir) {
+	public void clone(IRemoteRepo pRemoteRepo, String pProjectUrl, Path pRepoDir) {
 		final String mName = "clone";
 		try {
-			log.entering(mName, "Cloning", pRemoteRepo.getId(), pProjectUrl, pProjectDir);
-			final Path parentDir = pProjectDir.toAbsolutePath().getParent();
+			log.entering(mName, "Cloning", pRemoteRepo.getId(), pProjectUrl, pRepoDir);
+			final Path parentDir = pRepoDir.toAbsolutePath().getParent();
 			if (parentDir != null) {
 				log.trace(mName, "Creating directory", parentDir.toString());
 				Files.createDirectories(parentDir);
@@ -81,7 +80,7 @@ public class GitExeGitHandler implements IGitHandler {
 	        	cmdList.add("-q");
 	        }
 	        cmdList.add(pProjectUrl);
-	        cmdList.add(pProjectDir.getFileName().toString());
+	        cmdList.add(pRepoDir.getFileName().toString());
 	        final String[] cmd = cmdList.toArray(new String[cmdList.size()]);
 			run(pRemoteRepo, parentDir, cmd);
 			log.exiting(mName);
@@ -98,10 +97,10 @@ public class GitExeGitHandler implements IGitHandler {
 	};
 
 	@Override
-	public List<String> getBranches(IRemoteRepo pRepo, Path pProjectDir) {
+	public List<String> getBranches(IRemoteRepo pRepo, Path pRepoDir) {
 		final String mName = "clone";
 		try {
-			log.entering(mName, "Getting branches", pRepo.getId(), pProjectDir);
+			log.entering(mName, "Getting branches", pRepo.getId(), pRepoDir);
 			final String[] cmd = new String[] {
 					getGitExecutable(pRepo),
 					"branch", "-r"
@@ -111,7 +110,7 @@ public class GitExeGitHandler implements IGitHandler {
 			final Consumer<InputStream> cOut = (in) -> Streams.copy(in, out);
 			final Consumer<InputStream> cErr = (in) -> Streams.copy(in, err);
 
-			executor.run(pProjectDir, cmd, getEnv(pRepo), cOut, cErr, DEFAULT_STATUS_HANDLER);
+			executor.run(pRepoDir, cmd, getEnv(pRepo), cOut, cErr, DEFAULT_STATUS_HANDLER);
 			final Path p = Paths.get("target/getBranches.log");
 			final List<String> lines = parseBranches(out.toByteArray());
 			try (OutputStream os = Files.newOutputStream(p)) {
@@ -121,6 +120,19 @@ public class GitExeGitHandler implements IGitHandler {
 			}
 			log.exiting(mName, Strings.join(", ", lines));
 			return lines;
+		} catch (Throwable t) {
+			throw Exceptions.show(t);
+		}
+	}
+
+	@Override
+	public void configure(IRemoteRepo pRemoteRepo, Path pRepoDir, String pGitProperty, String pValue) {
+		final String mName = "configure";
+		try {
+			log.entering(mName, pGitProperty, pValue);
+			final String[] cmd = new String[] { getGitExecutable(pRemoteRepo), "config", pGitProperty, pValue };
+			run(pRemoteRepo, pRepoDir, cmd);
+			log.exiting(mName);
 		} catch (Throwable t) {
 			throw Exceptions.show(t);
 		}
@@ -161,25 +173,35 @@ public class GitExeGitHandler implements IGitHandler {
 	}
 
 	@Override
-	public void switchToBranch(IRemoteRepo pRepo, Path pProjectDir, String pBranch) {
+	public void switchToBranch(IRemoteRepo pRepo, Path pRepoDir, String pBranch) {
 		final String mName = "switchToBranch";
 		try {
-			log.entering(mName, "Switching branch:", pRepo.getId(), pProjectDir, pBranch);
+			log.entering(mName, "Switching branch:", pRepo.getId(), pRepoDir, pBranch);
 			final String[] cmd = new String[] {
 					getGitExecutable(pRepo),
 					"checkout", "--track", pBranch
 			};
-			run(pRepo, pProjectDir, cmd);
+			run(pRepo, pRepoDir, cmd);
 		} catch (Throwable t) {
 			throw Exceptions.show(t);
 		}
 	}
 
 	protected Consumer<InputStream> loggingConsumer(String pId) {
-		return (in) -> {
-			
-		};
+		final IoCatcher ioc = IoCatcher.get();
+		if (ioc == null) {
+			return (in) -> {};
+		} else {
+			if ("STDOUT".equals(pId)) {
+				return (in) -> Streams.copy(in, ioc.getStandardOut());
+			} else if ("STDERR".equals(pId)) {
+				return (in) -> Streams.copy(in, ioc.getStandardErr());
+			} else {
+				throw new IllegalArgumentException("Invalid id: " + pId);
+			}
+		}
 	}
+
 	protected void run(IRemoteRepo pRepo, Path pDir, String... pCmd) {
 		final String[] env = getEnv(pRepo);
 		executor.run(pDir, pCmd, env, loggingConsumer("STDOUT"), loggingConsumer("STDERR"),

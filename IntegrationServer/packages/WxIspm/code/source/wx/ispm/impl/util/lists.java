@@ -82,6 +82,7 @@ public final class lists
 			stringList = new ArrayList<>();
 		} else {
 			if (stringListObject instanceof List) {
+				@SuppressWarnings("unchecked")
 				final List<String> lst = (List<String>) stringListObject;
 				stringList = lst;
 			} else {

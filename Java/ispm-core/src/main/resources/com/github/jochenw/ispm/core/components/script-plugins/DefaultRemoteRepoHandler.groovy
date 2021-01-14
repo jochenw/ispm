@@ -18,9 +18,12 @@ def remoteRepoHandler = new IRemoteRepoHandler() {
 		throw new IllegalStateException("Not implemented!");
 		
 	}
-	public void clone(IRemoteRepo pRemoteRepo, String pProjectId, ILocalRepo pLocalRepo, Path pTargetDir) {
+	public String getProjectUrl(IRemoteRepo pRemoteRepo, String pProjectId) {
 		throw new IllegalStateException("Not implemented!");
-	}
+    }
+    public void cloneProjectTo(IRemoteRepo pRemoteRepo, String pProjectId, String pUrl, Path pLocalProjectDir) {
+		throw new IllegalStateException("Not implemented!");
+    }
 };
 
 

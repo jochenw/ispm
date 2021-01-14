@@ -47,6 +47,8 @@ import com.github.jochenw.ispm.core.actions.AddLocalRepoAction;
 import com.github.jochenw.ispm.core.actions.AddPluginAction;
 import com.github.jochenw.ispm.core.actions.AddRemoteRepoAction;
 import com.github.jochenw.ispm.core.actions.ImportFromLocalRepoAction;
+import com.github.jochenw.ispm.core.actions.PackageCompilerAction;
+import com.github.jochenw.ispm.core.actions.PackageReloadAction;
 import com.github.jochenw.ispm.core.components.DefaultServiceInvocator;
 import com.github.jochenw.ispm.core.components.IServiceInvocator;
 import com.github.jochenw.ispm.core.config.IspmConfigParser;
@@ -312,6 +314,8 @@ public class IspmApplication {
 			b.bind(AddRemoteRepoAction.class).in(Scopes.NO_SCOPE);
 			b.bind(ISymbolicLinksHandler.class).toClass(DefaultSymbolicLinksHandler.class);
 			b.bind(IServiceInvocator.class).toClass(DefaultServiceInvocator.class);
+			b.bind(PackageCompilerAction.class).in(Scopes.NO_SCOPE);
+			b.bind(PackageReloadAction.class).in(Scopes.NO_SCOPE);
 			findBuiltinPlugins((Module m) -> m.configure(b));
 			tIspmConfiguration.forEachPlugin((tp) -> {
 				final Module module = newModule(tp);
