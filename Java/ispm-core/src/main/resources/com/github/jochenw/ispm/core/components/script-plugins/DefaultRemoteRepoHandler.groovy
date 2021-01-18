@@ -1,28 +1,63 @@
 import java.nio.file.Path
 
+import javax.json.JsonObject;
+
 import com.github.jochenw.afw.core.inject.IComponentFactory;
 import com.github.jochenw.afw.core.inject.ComponentFactoryBuilder.Binder;
 import com.github.jochenw.afw.core.inject.ComponentFactoryBuilder.Module;
-import com.github.jochenw.afw.core.util.Functions.FailableConsumer
+import com.github.jochenw.afw.core.log.ILog;
+import com.github.jochenw.afw.core.log.ILogFactory;
+import com.github.jochenw.afw.core.util.Functions.FailableConsumer;
+import com.github.jochenw.afw.core.util.Functions.FailableFunction;
+import com.github.jochenw.ispm.core.components.IJsonHandler;
 import com.github.jochenw.ispm.core.model.ILocalRepo
 import com.github.jochenw.ispm.core.model.IRemoteRepo
 import com.github.jochenw.ispm.core.model.IRemoteRepoHandler;
 import com.github.jochenw.ispm.core.model.IRemoteRepoHandler.IProject
 
 
-def remoteRepoHandler = new IRemoteRepoHandler() {
+def remoteRepoHandler = new com.github.jochenw.ispm.core.components.AbstractGitRemoteRepoHandler() {
+    private ILog log;
+	private IJsonHandler jsonHandler;
+
 	private void init(IComponentFactory pComponentFactory) {
-		
+	    def logFactory = pComponentFactory.requireInstance(ILogFactory.class);
+		jsonHandler = pComponentFactory.requireInstance(IJsonHandler.class);
+        log = logFactory.getLog(getClass());
 	}
 	public void forEach(IRemoteRepo pRemoteRepo, FailableConsumer<IProject,?> pConsumer) {
-		throw new IllegalStateException("Not implemented!");
-		
+		try {
+			final String u = pRemoteRepo.getUrl();
+			final String uri;
+			if (u.endsWith("/")) {
+				uri = u + "_apis/git/repositories";
+			} else {
+				uri = u + "/_apis/git/repositories";
+			}
+			final FailableFunction<InputStream,JsonObject,?> function = (in) -> {
+                return jsonHandler.parse(in);
+			};
+			final JsonObject repos = read(uri, pRemoteRepo, function);
+			repos.getJsonArray("value").forEach((o) -> {
+				final String id = o.getJsonString("name").getString();
+				final String url = o.getJsonString("url").getString();
+                final IProject project = new IProject(){
+					public String getId() { return id; }
+					public String getUrl() { return url; }
+				};
+				pConsumer.accept(project);
+			});
+		} catch (Throwable t) {
+			throw Exceptions.show(t);
+		}
 	}
 	public String getProjectUrl(IRemoteRepo pRemoteRepo, String pProjectId) {
-		throw new IllegalStateException("Not implemented!");
-    }
-    public void cloneProjectTo(IRemoteRepo pRemoteRepo, String pProjectId, String pUrl, Path pLocalProjectDir) {
-		throw new IllegalStateException("Not implemented!");
+		final String u = pRemoteRepo.getUrl();
+		if (u.endsWith("/")) {
+			return u + pProjectId;
+		} else {
+			return u + "/" + pProjectId;
+		}
     }
 };
 

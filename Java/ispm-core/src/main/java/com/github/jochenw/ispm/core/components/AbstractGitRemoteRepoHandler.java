@@ -1,7 +1,12 @@
 package com.github.jochenw.ispm.core.components;
 
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -9,6 +14,9 @@ import javax.inject.Inject;
 import com.github.jochenw.afw.core.inject.LogInject;
 import com.github.jochenw.afw.core.log.ILog;
 import com.github.jochenw.afw.core.props.IPropertyFactory;
+import com.github.jochenw.afw.core.util.Functions.FailableFunction;
+import com.github.jochenw.afw.core.util.Exceptions;
+import com.github.jochenw.afw.core.util.HttpConnector;
 import com.github.jochenw.afw.core.util.Objects;
 import com.github.jochenw.ispm.core.model.IRemoteRepo;
 import com.github.jochenw.ispm.core.model.IRemoteRepoHandler;
@@ -18,7 +26,51 @@ public abstract class AbstractGitRemoteRepoHandler implements IRemoteRepoHandler
 	private @Inject IGitHandler gitHandler;
 	private @Inject IBranchSelector branchSelector;
 	private @Inject IPropertyFactory propertyFactory;
+	private @Inject HttpConnector httpConnector;
 
+	protected String getProperty(IRemoteRepo pContainer, String pKey) {
+		return Objects.notNull(pContainer.getProperties().get(pKey), propertyFactory.getPropertyMap().get(pKey));
+	}
+	protected String requireProperty(IRemoteRepo pContainer, String pKey) {
+		final String value = getProperty(pContainer, pKey);
+		if (value == null) {
+			throw new NullPointerException("Missing property: " + pKey);
+		}
+		if (value.length() == 0) {
+			throw new IllegalArgumentException("Empty property: " + pKey);
+		}
+		return value;
+	}
+	protected <O> O read(String pUrl, IRemoteRepo pRemoteRepo, FailableFunction<InputStream,O,?> pConsumer) {
+		final String mName = "read";
+		log.entering(mName, "Reading", pUrl, pRemoteRepo.getId());
+		try (final HttpConnector.HttpConnection conn = httpConnector.connect(new URL(pUrl))) {
+			final HttpURLConnection huc = conn.getUrlConnection();
+			huc.setRequestMethod("GET");
+			final String userName = getProperty(pRemoteRepo, "remote.auth.userName");
+			final String password = getProperty(pRemoteRepo, "remote.auth.password");
+			if (userName != null  ||  password != null) {
+				log.debug(mName, "Authentication: userName=" + userName);
+				if (password == null) {
+					log.warn(mName, "Authentication: password is null");
+				} else if (password.length() == 0) {
+					log.warn(mName, "Authentication: passwordis empty.");
+				} else if (log.isTraceEnabled()) {
+					log.trace(mName, "Authentication: password=" + password);
+				} else {
+					log.debug(mName, "Authentication: password=<NOT_LOGGED>");
+				}
+				final String authStr = Base64.getMimeEncoder().encodeToString((userName + ":" + password).getBytes(StandardCharsets.UTF_8));
+				huc.setRequestProperty("Authorization", "basic " + authStr);
+			}
+			try (InputStream in = huc.getInputStream()) {
+				return pConsumer.apply(in);
+			}
+		} catch (Throwable t) {
+			throw Exceptions.show(t);
+		}
+			
+	}
 	@Override
 	public void cloneProjectTo(IRemoteRepo pRemoteRepo, String pProjectId, String pUrl, Path pLocalProjectDir) {
 		final String mName = "cloneProjectTo";

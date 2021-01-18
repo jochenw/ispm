@@ -1,0 +1,45 @@
+{
+	"value": [
+		{
+			"id": "4832145c-96d2-4810-a6a3-009d1413a407",
+			"name": "Foo-INT-Repo1",
+			"url": "https://dev.azure.com/customer/d19a6f8f-a2c3-49c6-9321-14d2d819cc01/_apis/git/repositories/4832145c-96d2-4810-a6a3-009d1413a407",
+			"project": {
+				"id": "d19a6f8f-a2c3-49c6-9321-14d2d819cc01",
+				"name": "customerorg",
+				"description": "This project is intended to manage all requirements and development tasks for the project team 'customerorg'.",
+				"url": "https://dev.azure.com/customer/_apis/projects/d19a6f8f-a2c3-49c6-9321-14d2d819cc01",
+				"state": "wellFormed",
+				"revision": 15353,
+				"visibility": "private",
+				"lastUpdateTime": "2020-10-01T07:39:29.593Z"
+			},
+			"defaultBranch": "refs/heads/master",
+			"size": 2019963,
+			"remoteUrl": "https://customer@dev.azure.com/customer/customerorg/_git/Foo-INT-Repo1",
+			"sshUrl": "git@ssh.dev.azure.com:v3/customer/customerorg/Foo-INT-Repo1",
+			"webUrl": "https://dev.azure.com/customer/customerorg/_git/Foo-INT-Repo1"
+		},
+		{
+			"id": "410dd5e3-2ec7-4b63-9c84-04f2aeae4987",
+			"name": "Foo-INT-Repo2",
+			"url": "https://dev.azure.com/customer/d19a6f8f-a2c3-49c6-9321-14d2d819cc01/_apis/git/repositories/410dd5e3-2ec7-4b63-9c84-04f2aeae4987",
+			"project": {
+				"id": "d19a6f8f-a2c3-49c6-9321-14d2d819cc01",
+				"name": "customerorg",
+				"description": "This project is intended to manage all requirements and development tasks for the project team 'customerorg'.",
+				"url": "https://dev.azure.com/customer/_apis/projects/d19a6f8f-a2c3-49c6-9321-14d2d819cc01",
+				"state": "wellFormed",
+				"revision": 15353,
+				"visibility": "private",
+				"lastUpdateTime": "2020-10-01T07:39:29.593Z"
+			},
+			"defaultBranch": "refs/heads/master",
+			"size": 437403287,
+			"remoteUrl": "https://customer@dev.azure.com/customer/customerorg/_git/ESB-Build-Jenkins",
+			"sshUrl": "git@ssh.dev.azure.com:v3/customer/customerorg/Foo-INT-Repo2",
+			"webUrl": "https://dev.azure.com/customer/customerorg/_git/Foo-INT-Repo2"
+		}
+	],
+	"count": 2
+}
