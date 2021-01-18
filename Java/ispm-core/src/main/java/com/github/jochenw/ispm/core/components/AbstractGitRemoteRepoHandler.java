@@ -60,8 +60,8 @@ public abstract class AbstractGitRemoteRepoHandler implements IRemoteRepoHandler
 				} else {
 					log.debug(mName, "Authentication: password=<NOT_LOGGED>");
 				}
-				final String authStr = Base64.getMimeEncoder().encodeToString((userName + ":" + password).getBytes(StandardCharsets.UTF_8));
-				huc.setRequestProperty("Authorization", "basic " + authStr);
+				final String authStr = Base64.getMimeEncoder(0, new byte[] {'\n'}).encodeToString((userName + ":" + password).getBytes(StandardCharsets.UTF_8));
+				huc.setRequestProperty("Authorization", "basic " + authStr.trim());
 			}
 			try (InputStream in = huc.getInputStream()) {
 				return pConsumer.apply(in);
@@ -75,8 +75,9 @@ public abstract class AbstractGitRemoteRepoHandler implements IRemoteRepoHandler
 	public void cloneProjectTo(IRemoteRepo pRemoteRepo, String pProjectId, String pUrl, Path pLocalProjectDir) {
 		final String mName = "cloneProjectTo";
 		final IRemoteRepo remoteRepo = Objects.requireNonNull(pRemoteRepo, "Remote repository");
+		final IGitHandler gh = Objects.requireNonNull(gitHandler, "GitHandler");
 		log.entering(mName, remoteRepo.getId(), pProjectId, pUrl, pLocalProjectDir);
-		gitHandler.clone(remoteRepo, pProjectId, pLocalProjectDir);
+		gh.clone(remoteRepo, pUrl, pLocalProjectDir);
 		final List<String> branches = gitHandler.getBranches(remoteRepo, pLocalProjectDir);
 		final String latestBranch = branchSelector.getBranch(branches);
 		if (latestBranch == null) {

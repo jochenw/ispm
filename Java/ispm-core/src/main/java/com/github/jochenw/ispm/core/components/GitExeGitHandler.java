@@ -1,13 +1,12 @@
 package com.github.jochenw.ispm.core.components;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UncheckedIOException;
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -111,13 +110,7 @@ public class GitExeGitHandler implements IGitHandler {
 			final Consumer<InputStream> cErr = (in) -> Streams.copy(in, err);
 
 			executor.run(pRepoDir, cmd, getEnv(pRepo), cOut, cErr, DEFAULT_STATUS_HANDLER);
-			final Path p = Paths.get("target/getBranches.log");
 			final List<String> lines = parseBranches(out.toByteArray());
-			try (OutputStream os = Files.newOutputStream(p)) {
-				out.writeTo(os);
-			} catch (IOException e) {
-				throw new UncheckedIOException(e);
-			}
 			log.exiting(mName, Strings.join(", ", lines));
 			return lines;
 		} catch (Throwable t) {
@@ -139,34 +132,33 @@ public class GitExeGitHandler implements IGitHandler {
 	}
 
 	protected List<String> parseBranches(byte[] pOutput) {
-		final List<String> branches = new ArrayList<>();
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		final Runnable flusher = () -> {
-			if (baos.size() > 0) {
-				final String line = baos.toString();
-				final String releaseNumber = getReleaseNumber(line);
-				if (releaseNumber != null) {
-					branches.add(releaseNumber);
+		final String s = new String(pOutput);
+		final List<String> branches = new ArrayList<String>();
+		try (StringReader sr = new StringReader(s);
+			 BufferedReader br = new BufferedReader(sr)) {
+			for (;;) {
+				final String line = br.readLine();
+				if (line == null) {
+					break;
+				} else if (line.contains("->")) {
+					continue;
+				} else {
+					final String branch = getReleaseNumber(line.trim());
+					if (branch != null) {
+						branches.add(branch);
+					}
 				}
 			}
-			baos.reset();
-		};
-		for (int i = 0;  i < pOutput.length;  i++) {
-			final byte b = pOutput[i];
-			if (b == 13  ||  b == 10) {
-				flusher.run();
-			} else {
-				baos.write((int) b);
-			}
+		} catch (IOException e) {
+			throw Exceptions.show(e);
 		}
-		flusher.run();
 		return branches;
 	}
 
 	protected String getReleaseNumber(String pBranchName) {
 		final int offset = pBranchName.indexOf("Releases/");
 		if (offset != -1) {
-			return pBranchName.substring(offset + "Releases/".length());
+			return pBranchName.substring(offset);
 		} else {
 			return null;
 		}
@@ -190,12 +182,21 @@ public class GitExeGitHandler implements IGitHandler {
 	protected Consumer<InputStream> loggingConsumer(String pId) {
 		final IoCatcher ioc = IoCatcher.get();
 		if (ioc == null) {
-			return (in) -> {};
+			return (in) -> {
+				log.debug("loggingConsumer", "Discarding output", pId);
+				Streams.read(in);
+			};
 		} else {
 			if ("STDOUT".equals(pId)) {
-				return (in) -> Streams.copy(in, ioc.getStandardOut());
+				return (in) -> {
+					log.debug("loggingConsumer", "Catching output", pId);
+					Streams.copy(in, ioc.getStandardOut());
+				};
 			} else if ("STDERR".equals(pId)) {
-				return (in) -> Streams.copy(in, ioc.getStandardErr());
+				return (in) -> {
+					log.debug("loggingConsumer", "Catching output", pId);
+					Streams.copy(in, ioc.getStandardErr());
+				};
 			} else {
 				throw new IllegalArgumentException("Invalid id: " + pId);
 			}
@@ -204,6 +205,7 @@ public class GitExeGitHandler implements IGitHandler {
 
 	protected void run(IRemoteRepo pRepo, Path pDir, String... pCmd) {
 		final String[] env = getEnv(pRepo);
+		log.debug("run", "Running git: ", pDir, pCmd, env);
 		executor.run(pDir, pCmd, env, loggingConsumer("STDOUT"), loggingConsumer("STDERR"),
 					 DEFAULT_STATUS_HANDLER);
 	}

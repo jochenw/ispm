@@ -37,6 +37,7 @@ public class ImportFromRemoteRepoAction extends AbstractAction {
 			final ILocalRepoLayout layout = configuration.requireLocalRepoLayout(componentFactory, localRepo);
 			final IRemoteRepoHandler handler = configuration.requireRemoteRepoHandler(componentFactory, remoteRepo);
 			final Path localProjectDir = layout.getProjectDir(localRepo, projectId);
+			log.debug(mName, "Target directory", localProjectDir);
 			if (java.nio.file.Files.exists(localProjectDir)) {
 				if (java.nio.file.Files.isDirectory(localProjectDir)) {
 					if (pDeleteExistingProject) {
@@ -53,6 +54,7 @@ public class ImportFromRemoteRepoAction extends AbstractAction {
 				}
 			}
 			final String url = handler.getProjectUrl(remoteRepo, projectId);
+			log.debug(mName, "Remote Url", url);
 			handler.cloneProjectTo(remoteRepo, projectId, url, localProjectDir);
 			importFromLocalRepoAction.importFromLocalRepo(ctx, instance, localRepo, projectId);
 			ctx.debug(log, mName, "Imported remote project: " + projectId);

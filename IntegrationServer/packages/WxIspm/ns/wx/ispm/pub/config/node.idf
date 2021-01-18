@@ -37,6 +37,7 @@ cm95KCk7CgkJCXJldHVybiBudWxsOwoJCX0KCX0KfQ==</value>
     <value>com.github.jochenw.ispm.core.actions.AddRemoteRepoAction</value>
     <value>com.github.jochenw.ispm.core.data.Data</value>
     <value>com.github.jochenw.ispm.core.svc.IspmApplication</value>
+    <value>com.github.jochenw.ispm.core.svc.IspmApplicationSvc</value>
     <value>com.softwareag.util.IDataMap</value>
   </array>
 </Values>

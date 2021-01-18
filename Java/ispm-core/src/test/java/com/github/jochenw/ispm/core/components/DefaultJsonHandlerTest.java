@@ -59,7 +59,7 @@ class DefaultJsonHandlerTest {
 		final JsonObject object = readGitRepos();
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		new DefaultJsonHandler().write(object, baos);
-		final String got = baos.toString(StandardCharsets.UTF_8);
+		final String got = baos.toString(StandardCharsets.UTF_8.name());
 		final URL url = getClass().getResource("git-repos-short.json");
 		final String JSON;
 		try (InputStream in = url.openStream()) {

@@ -18,7 +18,6 @@ import java.util.Properties;
 import java.util.function.Consumer;
 
 import org.apache.logging.log4j.util.Strings;
-import org.codehaus.groovy.ast.ASTNode;
 
 import com.github.jochenw.afw.core.ILifecycleController;
 import com.github.jochenw.afw.core.components.DefaultSymbolicLinksHandler;
@@ -49,6 +48,7 @@ import com.github.jochenw.ispm.core.actions.AddLocalRepoAction;
 import com.github.jochenw.ispm.core.actions.AddPluginAction;
 import com.github.jochenw.ispm.core.actions.AddRemoteRepoAction;
 import com.github.jochenw.ispm.core.actions.ImportFromLocalRepoAction;
+import com.github.jochenw.ispm.core.actions.ImportFromRemoteRepoAction;
 import com.github.jochenw.ispm.core.actions.PackageCompilerAction;
 import com.github.jochenw.ispm.core.actions.PackageReloadAction;
 import com.github.jochenw.ispm.core.components.DefaultBranchSelector;
@@ -111,9 +111,11 @@ public class IspmApplication {
 	public TIspmConfiguration getTIspmConfiguration() {
 		return useCoreData(cd -> {
 			if (cd.tIspmConfiguration == null) {
+				Trace.log("Creating configuration");
 				final Tupel<TIspmConfiguration,Path> tupel = newTIspmConfiguration();
 				cd.tIspmConfiguration = tupel.getAttribute1();
 				cd.ispmConfigurationPath = tupel.getAttribute2();
+				Trace.log("Created configuration from " + cd.ispmConfigurationPath);
 			}
 			return cd.tIspmConfiguration;
 		});
@@ -131,7 +133,9 @@ public class IspmApplication {
 	public ILogFactory getLogFactory() {
 		return useCoreData(cd -> {
 			if (cd.logFactory == null) {
+				Trace.log("Creating log factory");
 				cd.logFactory = newLogFactory();
+				Trace.log("Created log factory");
 			}
 			return cd.logFactory;
 		});
@@ -237,6 +241,7 @@ public class IspmApplication {
 	protected ILogFactory newLogFactory() {
 		final Path path = requireFile("./config/packages/" + ispmPackageName + "/log4j2.xml",
 				                      "./packages/" + ispmPackageName + "/config/log4j2.xml");
+		Trace.log("Reading logging configuration from " + path);
 		final Log4j2LogFactory lf = new Log4j2LogFactory() {
 			@Override
 			protected URL getUrl() {
@@ -247,7 +252,10 @@ public class IspmApplication {
 				}
 			}
 		};
+		Trace.log("Starting logging factory");
 		lf.start();
+		lf.getLog(IspmApplication.class).info("newLogFactory", "Logging configured from " + path);
+		Trace.log("Created logging factory from " + path);
 		return lf;
 	}
 
@@ -276,7 +284,8 @@ public class IspmApplication {
 	}
 
 	protected IspmConfiguration newIspmConfiguration() {
-		return new IspmConfigurationBuilder().build(getTIspmConfiguration(), currentDir);
+		final IspmConfigurationBuilder icb = new IspmConfigurationBuilder(getLogFactory());
+		return icb.build(getTIspmConfiguration(), currentDir);
 	}
 
 	protected IComponentFactory newComponentFactory() {
@@ -284,19 +293,7 @@ public class IspmApplication {
 		if (modules != null) {
 			scfb.modules(modules);
 		}
-		try {
-			return scfb.build();
-		} catch (GroovyRuntimeException gre) {
-			final ASTNode node = gre.getNode();
-			if (node == null) {
-				throw gre;
-			} else {
-				final String text = node.getText();
-				final int lineNumber = node.getLineNumber();
-				final int columnNumber = node.getColumnNumber();
-				throw gre;
-			}
-		}
+		return scfb.build();
 	}
 
 	protected Module newModule() {
@@ -314,6 +311,7 @@ public class IspmApplication {
 			b.bind(IspmApplication.class).toInstance(IspmApplication.this);
 			b.bind(Path.class, "currentDir").toInstance(currentDir);
 			b.bind(ImportFromLocalRepoAction.class).in(Scopes.NO_SCOPE);
+			b.bind(ImportFromRemoteRepoAction.class).in(Scopes.NO_SCOPE);
 			b.bind(AddLocalRepoAction.class).in(Scopes.NO_SCOPE);
 			b.bind(ActivatePackageAction.class).in(Scopes.NO_SCOPE);
 			b.bind(AddInstanceAction.class).in(Scopes.NO_SCOPE);
@@ -329,6 +327,7 @@ public class IspmApplication {
 			b.bind(IBranchSelector.class).to(DefaultBranchSelector.class);
 			b.bind(HttpConnector.class);
 			b.bind(Executor.class);
+			b.bind(Executor.class, "git");
 			findBuiltinPlugins((Module m) -> m.configure(b));
 			tIspmConfiguration.forEachPlugin((tp) -> {
 				final Module module = newModule(tp);

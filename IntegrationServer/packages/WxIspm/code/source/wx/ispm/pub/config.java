@@ -19,6 +19,7 @@ import com.github.jochenw.ispm.core.actions.AddPluginAction;
 import com.github.jochenw.ispm.core.actions.AddRemoteRepoAction;
 import com.github.jochenw.ispm.core.data.Data;
 import com.github.jochenw.ispm.core.svc.IspmApplication;
+import com.github.jochenw.ispm.core.svc.IspmApplicationSvc;
 import com.softwareag.util.IDataMap;
 // --- <<IS-END-IMPORTS>> ---
 
@@ -67,7 +68,7 @@ public final class config
 		final String logsDir = Data.getString(map, "logsDir");
 		final Map<String,String> propertyMap = asPropertyMap(properties);
 		
-		final IspmApplication ispmApplication = IspmApplication.getInstance();
+		final IspmApplication ispmApplication = IspmApplicationSvc.getInstance().getApplication();
 		final AddInstanceAction action = ispmApplication.getComponentFactory().requireInstance(AddInstanceAction.class);
 		action.addInstance(id, baseDirPath, propertyMap, wmHomeDir, packagesDir, configDir, logsDir);
 		// --- <<IS-END>> ---
@@ -95,7 +96,7 @@ public final class config
 		}
 		final String layout = Data.getString(map, "layout");
 		final IData propertiesData = Data.getIData(map, "properties");
-		final IspmApplication ispmApplication = IspmApplication.getInstance();
+		final IspmApplication ispmApplication = IspmApplicationSvc.getInstance().getApplication();
 		final AddLocalRepoAction action = ispmApplication.getComponentFactory().requireInstance(AddLocalRepoAction.class);
 		action.addLocalRepo(id, layout, path, asPropertyMap(propertiesData));
 		// --- <<IS-END>> ---
@@ -110,7 +111,8 @@ public final class config
 	{
 		// --- <<IS-START(addPlugin)>> ---
 		// @sigtype java 3.5
-		// [i] field:0:required className
+		// [i] field:0:optional className
+		// [i] field:0:optional scriptName
 		final IDataMap map = new IDataMap(pipeline);
 		final String className = Strings.notNull(Data.getString(map, "className"));
 		final String scriptName = Strings.notNull(Data.getString(map, "scriptName"));
@@ -121,7 +123,7 @@ public final class config
 			throw new IllegalArgumentException("The parameters className, and scriptName are mutually exclusive.");
 		}
 		final IData properties = Data.getIData(map, "properties");
-		final IspmApplication ispmApplication = IspmApplication.getInstance();
+		final IspmApplication ispmApplication = IspmApplicationSvc.getInstance().getApplication();
 		final AddPluginAction action = ispmApplication.getComponentFactory().requireInstance(AddPluginAction.class);
 		action.addPlugin(className, scriptName, asPropertyMap(properties));
 		// --- <<IS-END>> ---
@@ -149,7 +151,7 @@ public final class config
 		final String url = Data.requireString(map, "url");
 		final String handler = Data.getString(map, "handler");
 		final IData propertiesData = Data.getIData(map, "properties");
-		final IspmApplication ispmApplication = IspmApplication.getInstance();
+		final IspmApplication ispmApplication = IspmApplicationSvc.getInstance().getApplication();
 		final AddRemoteRepoAction action = ispmApplication.getComponentFactory().requireInstance(AddRemoteRepoAction.class);
 		action.addRemoteRepo(id, handler, url, asPropertyMap(propertiesData));
 			

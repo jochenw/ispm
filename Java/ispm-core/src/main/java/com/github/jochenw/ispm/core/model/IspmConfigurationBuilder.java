@@ -7,17 +7,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
 
+import com.github.jochenw.afw.core.inject.LogInject;
+import com.github.jochenw.afw.core.log.ILog;
+import com.github.jochenw.afw.core.log.ILogFactory;
 import com.github.jochenw.afw.core.util.DomHelper;
 import com.github.jochenw.afw.core.util.Files;
 import com.github.jochenw.afw.core.util.Functions;
 import com.github.jochenw.afw.core.util.Functions.FailableConsumer;
+import com.github.jochenw.afw.core.util.Strings;
 import com.github.jochenw.ispm.core.config.TIspmConfiguration;
 import com.github.jochenw.ispm.core.config.TIspmConfiguration.TInstance;
 import com.github.jochenw.ispm.core.config.TIspmConfiguration.TLocalRepo;
 import com.github.jochenw.ispm.core.config.TIspmConfiguration.TRemoteRepo;
 
 public class IspmConfigurationBuilder {
+	private final ILog log;
+
+	public IspmConfigurationBuilder(ILogFactory pLogFactory) {
+		log = pLogFactory.getLog(IspmConfigurationBuilder.class);
+	}
+
 	public IspmConfiguration build(TIspmConfiguration pIspmConfiguration, Path pBaseDir) {
+		final String mName = "build";
+		log.entering(mName, "Path", pBaseDir);
 		final Map<String,ILocalRepo> localRepos = new HashMap<>();
 		final Map<String,IRemoteRepo> remoteRepos = new HashMap<>();
 		final Map<String,IInstance> instances = new HashMap<>();
@@ -33,6 +45,8 @@ public class IspmConfigurationBuilder {
 		pIspmConfiguration.forEachRemoteRepo((id,repo) -> {
 			remoteRepos.put(id, newRemoteRepo(repo));
 		});
+		log.exiting(mName, "Sets", Strings.toString(instances.keySet()),
+				    Strings.toString(localRepos.keySet()), Strings.toString(remoteRepos.keySet()));
 		return new IspmConfiguration() {
 			@Override
 			public IRemoteRepo getRemoteRepo(String pId) {

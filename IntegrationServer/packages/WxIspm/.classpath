@@ -11,5 +11,7 @@
 	<classpathentry kind="lib" path="code/jars/javax.inject-1.jar" sourcepath="code/source-jars/javax.inject-1-sources.zip"/>
 	<classpathentry kind="lib" path="code/jars/log4j-api-2.13.3.jar" sourcepath="code/source-jars/log4j-api-2.13.3-sources.zip"/>
 	<classpathentry kind="lib" path="code/jars/log4j-core-2.13.3.jar" sourcepath="code/source-jars/log4j-core-2.13.3-sources.zip"/>
+	<classpathentry kind="lib" path="code/jars/javax.json-1.1.jar" sourcepath="code/source-jars/javax.json-1.1-sources.jar"/>
+	<classpathentry kind="lib" path="code/jars/javax.json-api-1.1.4.jar" sourcepath="code/source-jars/javax.json-api-1.1.4-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
