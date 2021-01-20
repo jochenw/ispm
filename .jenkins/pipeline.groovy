@@ -1,9 +1,23 @@
 pipeline {
-	stages {
-		stage('build') {
+    agent any
+    tools { 
+        maven 'M3' 
+        jdk 'jdk8' 
+    }
+    stages {
+        stage ('Init') {
             steps {
-				sh 'mvn -Pjacoco -f Java/ispm-core/pom.xml clean install'
-			}
-		}
-	}
+                sh '''
+                    echo "PATH = ${PATH}"
+                    echo "M2_HOME = ${M2_HOME}"
+                ''' 
+            }
+        }
+
+        stage ('Build') {
+            steps {
+                echo 'This is a minimal pipeline.'
+            }
+        }
+    }
 }
