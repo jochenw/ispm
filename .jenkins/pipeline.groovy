@@ -7,16 +7,12 @@ pipeline {
     stages {
         stage ('Init') {
             steps {
-                sh '''
-                    echo "PATH = ${PATH}"
-                    echo "M2_HOME = ${M2_HOME}"
-                ''' 
             }
         }
 
         stage ('Build') {
             steps {
-                echo 'This is a minimal pipeline.'
+				sh 'mvn -fJava/ispm-core/pom.xml -Dmaven.test.failure.ignore=true clean install'
             }
         }
     }
