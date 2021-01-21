@@ -12,7 +12,7 @@ pipeline {
 
         stage ('Build') {
             steps {
-				sh 'mvn -fJava/ispm-core/pom.xml -Dmaven.test.failure.ignore=true clean install'
+				bat 'mvn.cmd -fJava/ispm-core/pom.xml -Dmaven.test.failure.ignore=true clean install'
             }
         }
     }
