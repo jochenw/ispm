@@ -12,14 +12,16 @@ pipeline {
         }
 
         stage ('Build') {
-            withMaven(
-                 // Maven installation declared in the Jenkins "Global Tool Configuration"
-                 maven: 'Maven3',
+            steps {
+                withMaven(
+                     // Maven installation declared in the Jenkins "Global Tool Configuration"
+                     maven: 'Maven3',
 
-                // Use `$WORKSPACE/.repository` for local repository folder to avoid shared repositories
-                mavenLocalRepo: '.repository',
-            ) {
-			    bat 'mvn.cmd -fJava/ispm-core/pom.xml -Dmaven.test.failure.ignore=true clean install'
+                    // Use `$WORKSPACE/.repository` for local repository folder to avoid shared repositories
+                    mavenLocalRepo: '.repository',
+                ) {
+    			    bat 'mvn.cmd -fJava/ispm-core/pom.xml -Dmaven.test.failure.ignore=true clean install'
+                }
             }
         }
     }
