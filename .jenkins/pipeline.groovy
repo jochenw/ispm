@@ -5,12 +5,6 @@ pipeline {
         jdk 'Java8' 
     }
     stages {
-        stage ('Init') {
-            steps {
-                git url: "https://github.com/jochenw/ispm"
-            }
-        }
-
         stage ('Build') {
             steps {
                 withMaven(
@@ -20,7 +14,7 @@ pipeline {
                     // Use `$WORKSPACE/.repository` for local repository folder to avoid shared repositories
                     mavenLocalRepo: '.repository',
                 ) {
-    			    bat 'mvn.cmd -fJava/ispm-core/pom.xml -Dmaven.test.failure.ignore=true clean install'
+    			    bat 'mvn.cmd -fJava/ispm-core/pom.xml -Pjacoco -Dmaven.test.failure.ignore=true clean install'
                 }
             }
         }
