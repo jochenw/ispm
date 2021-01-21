@@ -263,7 +263,7 @@ public class PackageCompiler {
 			log("Classpath element: Classes directory " + codeClassesDir);
 			pData.addClassPathDependency(codeClassesDir);
 		} else {
-			warnLogger.accept("code/classes directory not found for package: " + pPackageName + ". Ignoring classes from this package.");
+			warn("code/classes directory not found for package: " + pPackageName + ". Ignoring classes from this package.");
 		}
 		collectPackageJarFiles(pData, pPackageName, packageDir);
 		for (String requiredPackage : requiredPackages) {
@@ -297,7 +297,7 @@ public class PackageCompiler {
 				throw Exceptions.show(t);
 			}
 		} else {
-			warnLogger.accept("Manifest file not found for package " + pPackageName + ". Ignoring this packages dependencies.");
+			warn("Manifest file not found for package " + pPackageName + ". Ignoring this packages dependencies.");
 		}
 		return requiredPackages.toArray(new String[requiredPackages.size()]);
 	}
@@ -316,7 +316,7 @@ public class PackageCompiler {
 				throw Exceptions.show(t);
 			}
 		} else {
-			warnLogger.accept("code/jars directory not found for package: " + pPackageName + ". Ignoring jar files from this package.");
+			warn("code/jars directory not found for package: " + pPackageName + ". Ignoring jar files from this package.");
 		}
 	}
 
