@@ -5,7 +5,7 @@ pipeline {
         jdk 'Java8' 
     }
     stages {
-        stage ('Build') {
+        stage ('Build ispm-core') {
             steps {
                 withMaven(
                      // Maven installation declared in the Jenkins "Global Tool Configuration"
@@ -16,16 +16,6 @@ pipeline {
                 ) {
     			    bat 'mvn.cmd -fJava/ispm-core/pom.xml -Pjacoco -Dmaven.test.failure.ignore=true clean install'
                 }
-            }
-        }
-        stage ('Profile') {
-            steps {
-                jacoco( 
-                    execPattern: 'Java/ispm-core/target/*.exec',
-                    classPattern: 'Java/ispm-core/target/classes',
-                    sourcePattern: 'Java/ispm-core/src/main/java',
-                    exclusionPattern: 'src/test*'
-                )
             }
         }
     }
