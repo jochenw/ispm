@@ -18,5 +18,15 @@ pipeline {
                 }
             }
         }
+        stage ('Profile') {
+            steps {
+                jacoco( 
+                    execPattern: 'Java/ispm-core/target/*.exec',
+                    classPattern: 'Java/ispm-core/target/classes',
+                    sourcePattern: 'Java/ispm-core/src/main/java',
+                    exclusionPattern: 'src/test*'
+                )
+            }
+        }
     }
 }
