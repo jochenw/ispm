@@ -6,9 +6,7 @@ pipeline {
     }
     stages {
         stage ('Init') {
-            steps {
-                echo "Initializing pipeline."
-            }
+            git url: "https://github.com/jochenw/ispm"
         }
 
         stage ('Build') {
