@@ -6,7 +6,9 @@ pipeline {
     }
     stages {
         stage ('Init') {
-            git url: "https://github.com/jochenw/ispm"
+            steps {
+                git url: "https://github.com/jochenw/ispm"
+            }
         }
 
         stage ('Build') {
