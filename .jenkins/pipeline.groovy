@@ -20,6 +20,7 @@ pipeline {
                     // Use `$WORKSPACE/.repository` for local repository folder to avoid shared repositories
                     mavenLocalRepo: '.repository',
                 ) {
+                    bat 'mvn.cmd help:evaluate -Dexpression=settings.localRepository'
     			    bat 'mvn.cmd -fJava/ispm-core/pom.xml -Dmaven.test.failure.ignore=true clean install'
                 }
             }
