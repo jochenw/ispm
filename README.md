@@ -12,7 +12,7 @@ In what follows, we'll be using the terms WxIspm, and ispm, synonymously.
 
 ## Goals (What does it do?)
 
-It provides services, that an IS developer maay use, for example:
+It provides services, that an IS developer may use, for example:
 
   - A service for reloading an IS package, that has been modified on disk.
     Of course, the same functionality is available from within the IS administration
